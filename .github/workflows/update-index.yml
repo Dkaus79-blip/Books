@@ -20,15 +20,9 @@ jobs:
         run: |
           shopt -s nullglob
 
-          # SAFEST POSSIBLE FILE COLLECTION
-          # - handles spaces
-          # - handles apostrophes
-          # - handles ANY capitalization
-          # - handles ANY weird characters
-          # - guaranteed to return correct list
+          # SAFE FILE COLLECTION (handles anything)
           mapfile -t files < <(find Books -maxdepth 1 -type f -iregex '.*\.html' | sort -f)
 
-          # If no files found, exit gracefully
           if [ ${#files[@]} -eq 0 ]; then
             echo "No HTML files found in Books/"
             exit 0
@@ -40,34 +34,34 @@ jobs:
 
           start_page() {
             filename=$1
-            echo "<!DOCTYPE html>" > $filename
-            echo "<html lang='en'><head><meta charset='UTF-8'><title>Skeeter Series Library</title>" >> $filename
-            echo "<style>" >> $filename
-            echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> $filename
-            echo "h1 { color: #003366; margin-bottom: 30px; }" >> $filename
-            echo ".button-container { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 400px; margin: 0 auto; }" >> $filename
-            echo "a.book-button { display: block; width: 100%; padding: 14px; background: #007bff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; transition: background 0.2s; }" >> $filename
-            echo "a.book-button:hover { background: #0056b3; }" >> $filename
-            echo ".nav-button { margin-top: 20px; font-size: 20px; }" >> $filename
-            echo "</style></head><body>" >> $filename
-            echo "<h1>Skeeter Series Library – Page $page</h1>" >> $filename
-            echo "<div class='button-container'>" >> $filename
+            echo "<!DOCTYPE html>" > "$filename"
+            echo "<html lang='en'><head><meta charset='UTF-8'><title>Skeeter Series Library</title>" >> "$filename"
+            echo "<style>" >> "$filename"
+            echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> "$filename"
+            echo "h1 { color: #003366; margin-bottom: 30px; }" >> "$filename"
+            echo ".button-container { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 400px; margin: 0 auto; }" >> "$filename"
+            echo "a.book-button { display: block; width: 100%; padding: 14px; background: #007bff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; transition: background 0.2s; }" >> "$filename"
+            echo "a.book-button:hover { background: #0056b3; }" >> "$filename"
+            echo ".nav-button { margin-top: 20px; font-size: 20px; }" >> "$filename"
+            echo "</style></head><body>" >> "$filename"
+            echo "<h1>Skeeter Series Library – Page $page</h1>" >> "$filename"
+            echo "<div class='button-container'>" >> "$filename"
           }
 
           end_page() {
             filename=$1
-            echo "</div>" >> $filename
+            echo "</div>" >> "$filename"
 
             if [ $page -gt 1 ]; then
               prev=$((page-1))
-              echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> $filename
+              echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> "$filename"
             fi
 
-            echo "</body></html>" >> $filename
+            echo "</body></html>" >> "$filename"
           }
 
           current_file="Books/index.html"
-          start_page $current_file
+          start_page "$current_file"
 
           for file in "${files[@]}"; do
             base=$(basename "$file")
@@ -75,23 +69,35 @@ jobs:
             title="${title//_/ }"
 
             if [ $count -eq $per_page ]; then
-              end_page $current_file
+              end_page "$current_file"
               page=$((page+1))
               current_file="Books/page${page}.html"
-              start_page $current_file
+              start_page "$current_file"
               count=0
             fi
 
-            echo "<a class='book-button' href='$base'>$title</a>" >> $current_file
+            echo "<a class='book-button' href='$base'>$title</a>" >> "$current_file"
             count=$((count+1))
           done
 
-          end_page $current_file
+          end_page "$current_file"
 
-          for ((i=1; i<page; i++)); do
+          # SAFE PAGINATION LOOP (never touches page1)
+          for ((i=2; i<=page; i++)); do
             file="Books/page${i}.html"
             next=$((i+1))
-            sed -i "/<\/body>/i <a class='book-button nav-button' href='page${next}.html'>Next Page →</a>" $file
+
+            if [ -f "Books/page${next}.html" ]; then
+              # Safe insertion using temporary file
+              tmpfile=$(mktemp)
+              awk -v nextpage="page${next}.html" '
+                /<\/body>/ {
+                  print "<a class='\''book-button nav-button'\'' href='\''" nextpage "'\''>Next Page →</a>"
+                }
+                { print }
+              ' "$file" > "$tmpfile"
+              mv "$tmpfile" "$file"
+            fi
           done
 
       - name: Commit updated pages
