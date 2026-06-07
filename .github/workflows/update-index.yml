@@ -3,8 +3,8 @@ name: Update Multi-Page Index
 on:
   push:
     paths:
-      - "*.html"
-      - "!index.html"
+      - "Books/*.html"
+      - "!Books/index.html"
 
 permissions:
   contents: write
@@ -19,22 +19,19 @@ jobs:
 
       - name: Generate multi-page index
         run: |
+          mkdir -p Books
+
           # Collect all book files except index.html
-          files=($(ls *.html | grep -v "index.html" | sort))
+          files=($(ls Books/*.html | grep -v "Books/index.html" | sort))
 
-          # How many books per page
           per_page=10
-
-          # Page counter
           page=1
           count=0
 
-          # Function to start a new page
           start_page() {
             filename=$1
             echo "<!DOCTYPE html>" > $filename
-            echo "<html lang='en'>" >> $filename
-            echo "<head><meta charset='UTF-8'><title>Skeeter Series Library</title>" >> $filename
+            echo "<html lang='en'><head><meta charset='UTF-8'><title>Skeeter Series Library</title>" >> $filename
             echo "<style>" >> $filename
             echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> $filename
             echo "h1 { color: #003366; margin-bottom: 30px; }" >> $filename
@@ -47,51 +44,40 @@ jobs:
             echo "<div class='button-container'>" >> $filename
           }
 
-          # Function to end a page
           end_page() {
             filename=$1
             echo "</div>" >> $filename
 
-            # Navigation buttons
             if [ $page -gt 1 ]; then
               prev=$((page-1))
               echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> $filename
             fi
 
-            # Next page button placeholder (added later if needed)
             echo "</body></html>" >> $filename
           }
 
-          # Start first page (index.html)
-          start_page "index.html"
+          current_file="Books/index.html"
+          start_page $current_file
 
-          # Loop through files
           for file in "${files[@]}"; do
             title=$(basename "$file" .html | sed 's/_/ /g')
 
-            # If page is full, close it and start a new one
             if [ $count -eq $per_page ]; then
               end_page $current_file
-
               page=$((page+1))
-              current_file="page${page}.html"
+              current_file="Books/page${page}.html"
               start_page $current_file
               count=0
             fi
 
-            # Add book button
-            current_file=${current_file:-"index.html"}
-            echo "<a class='book-button' href='$file'>$title</a>" >> $current_file
-
+            echo "<a class='book-button' href='$(basename $file)'>$title</a>" >> $current_file
             count=$((count+1))
           done
 
-          # End last page
           end_page $current_file
 
-          # Add Next Page buttons now that we know how many pages exist
           for ((i=1; i<page; i++)); do
-            file="page${i}.html"
+            file="Books/page${i}.html"
             next=$((i+1))
             sed -i "/<\/body>/i <a class='book-button nav-button' href='page${next}.html'>Next Page →</a>" $file
           done
@@ -100,6 +86,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add index.html page*.html
+          git add Books/index.html Books/page*.html
           git commit -m "Auto-update multi-page index" || echo "No changes to commit"
           git push
