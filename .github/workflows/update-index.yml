@@ -3,7 +3,7 @@ name: Update Multi-Page Index
 on:
   push:
     paths:
-      - "Books/*.html"
+      - "Books/**/*.html"
       - "!Books/index.html"
 
 permissions:
