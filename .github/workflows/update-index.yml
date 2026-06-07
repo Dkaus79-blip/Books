@@ -3,8 +3,8 @@ name: Update Multi-Page Index
 on:
   push:
     paths:
-      - "*.html"
-      - "!index.html"
+      - "Books/*.html"
+      - "!Books/index.html"
 
 permissions:
   contents: write
@@ -19,8 +19,8 @@ jobs:
 
       - name: Generate multi-page index
         run: |
-          # Collect all book files except index.html
-          files=($(ls *.html | grep -v "index.html" | sort))
+          # Collect all book files inside Books folder except index.html
+          files=($(ls Books/*.html | grep -v "Books/index.html" | sort))
 
           per_page=10
           page=1
@@ -54,28 +54,29 @@ jobs:
             echo "</body></html>" >> $filename
           }
 
-          current_file="index.html"
+          current_file="Books/index.html"
           start_page $current_file
 
           for file in "${files[@]}"; do
-            title=$(basename "$file" .html | sed 's/_/ /g')
+            title=$(basename "$file" .html | sed 's/_/ /g' | sed 's/Books\///')
 
             if [ $count -eq $per_page ]; then
               end_page $current_file
               page=$((page+1))
-              current_file="page${page}.html"
+              current_file="Books/page${page}.html"
               start_page $current_file
               count=0
             fi
 
-            echo "<a class='book-button' href='$file'>$title</a>" >> $current_file
+            cleanfile=$(basename "$file")
+            echo "<a class='book-button' href='$cleanfile'>$title</a>" >> $current_file
             count=$((count+1))
           done
 
           end_page $current_file
 
           for ((i=1; i<page; i++)); do
-            file="page${i}.html"
+            file="Books/page${i}.html"
             next=$((i+1))
             sed -i "/<\/body>/i <a class='book-button nav-button' href='page${next}.html'>Next Page →</a>" $file
           done
@@ -84,6 +85,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add index.html page*.html
+          git add Books/index.html Books/page*.html
           git commit -m "Auto-update multi-page index" || echo "No changes to commit"
           git push
