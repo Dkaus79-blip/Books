@@ -1,4 +1,4 @@
-name: Update Index
+name: Update Multi-Page Index
 
 on:
   push:
@@ -17,40 +17,89 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate button-style index.html
+      - name: Generate multi-page index
         run: |
-          echo "<!DOCTYPE html>" > index.html
-          echo "<html lang='en'>" >> index.html
-          echo "<head>" >> index.html
-          echo "<meta charset='UTF-8'>" >> index.html
-          echo "<title>Skeeter Series Library</title>" >> index.html
-          echo "<style>" >> index.html
-          echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> index.html
-          echo "h1 { color: #003366; margin-bottom: 30px; }" >> index.html
-          echo ".button-container { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 400px; margin: 0 auto; }" >> index.html
-          echo "a.book-button { display: block; width: 100%; padding: 14px; background: #007bff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; transition: background 0.2s; }" >> index.html
-          echo "a.book-button:hover { background: #0056b3; }" >> index.html
-          echo "</style>" >> index.html
-          echo "</head>" >> index.html
-          echo "<body>" >> index.html
-          echo "<h1>Skeeter Series Library</h1>" >> index.html
-          echo "<div class='button-container'>" >> index.html
+          # Collect all book files except index.html
+          files=($(ls *.html | grep -v "index.html" | sort))
 
-          for file in *.html; do
-            if [ "$file" != "index.html" ]; then
-              title=$(basename "$file" .html)
-              clean_title=$(echo "$title" | sed 's/_/ /g')
-              echo "<a class='book-button' href='$file'>$clean_title</a>" >> index.html
+          # How many books per page
+          per_page=10
+
+          # Page counter
+          page=1
+          count=0
+
+          # Function to start a new page
+          start_page() {
+            filename=$1
+            echo "<!DOCTYPE html>" > $filename
+            echo "<html lang='en'>" >> $filename
+            echo "<head><meta charset='UTF-8'><title>Skeeter Series Library</title>" >> $filename
+            echo "<style>" >> $filename
+            echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> $filename
+            echo "h1 { color: #003366; margin-bottom: 30px; }" >> $filename
+            echo ".button-container { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 400px; margin: 0 auto; }" >> $filename
+            echo "a.book-button { display: block; width: 100%; padding: 14px; background: #007bff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; transition: background 0.2s; }" >> $filename
+            echo "a.book-button:hover { background: #0056b3; }" >> $filename
+            echo ".nav-button { margin-top: 20px; font-size: 20px; }" >> $filename
+            echo "</style></head><body>" >> $filename
+            echo "<h1>Skeeter Series Library – Page $page</h1>" >> $filename
+            echo "<div class='button-container'>" >> $filename
+          }
+
+          # Function to end a page
+          end_page() {
+            filename=$1
+            echo "</div>" >> $filename
+
+            # Navigation buttons
+            if [ $page -gt 1 ]; then
+              prev=$((page-1))
+              echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> $filename
             fi
+
+            # Next page button placeholder (added later if needed)
+            echo "</body></html>" >> $filename
+          }
+
+          # Start first page (index.html)
+          start_page "index.html"
+
+          # Loop through files
+          for file in "${files[@]}"; do
+            title=$(basename "$file" .html | sed 's/_/ /g')
+
+            # If page is full, close it and start a new one
+            if [ $count -eq $per_page ]; then
+              end_page $current_file
+
+              page=$((page+1))
+              current_file="page${page}.html"
+              start_page $current_file
+              count=0
+            fi
+
+            # Add book button
+            current_file=${current_file:-"index.html"}
+            echo "<a class='book-button' href='$file'>$title</a>" >> $current_file
+
+            count=$((count+1))
           done
 
-          echo "</div>" >> index.html
-          echo "</body></html>" >> index.html
+          # End last page
+          end_page $current_file
 
-      - name: Commit updated index
+          # Add Next Page buttons now that we know how many pages exist
+          for ((i=1; i<page; i++)); do
+            file="page${i}.html"
+            next=$((i+1))
+            sed -i "/<\/body>/i <a class='book-button nav-button' href='page${next}.html'>Next Page →</a>" $file
+          done
+
+      - name: Commit updated pages
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add index.html
-          git commit -m "Auto-update button homepage" || echo "No changes to commit"
+          git add index.html page*.html
+          git commit -m "Auto-update multi-page index" || echo "No changes to commit"
           git push
