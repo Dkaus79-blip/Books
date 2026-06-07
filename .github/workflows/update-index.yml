@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate multi-page index
+        shell: bash
         run: |
           shopt -s nullglob
 
@@ -100,6 +101,7 @@ jobs:
           done
 
       - name: Commit updated pages
+        shell: bash
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
