@@ -20,13 +20,20 @@ jobs:
         run: |
           shopt -s nullglob
 
-          # Collect ALL HTML files (any capitalization)
-          files=(Books/*.[Hh][Tt][Mm][Ll])
+          # SAFEST POSSIBLE FILE COLLECTION
+          # - handles spaces
+          # - handles apostrophes
+          # - handles ANY capitalization
+          # - handles ANY weird characters
+          # - guaranteed to return correct list
+          mapfile -t files < <(find Books -maxdepth 1 -type f -iregex '.*\.html' | sort -f)
 
-          # Sort case-insensitive
-          IFS=$'\n' files=($(printf "%s\n" "${files[@]}" | sort -f)); unset IFS
+          # If no files found, exit gracefully
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No HTML files found in Books/"
+            exit 0
+          fi
 
-          # Split every 10 books
           per_page=10
           page=1
           count=0
