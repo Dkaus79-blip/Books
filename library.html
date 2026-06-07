@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My Book Library</title>
+<style>
+    body {
+        background: #111;
+        color: #eee;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 36px;
+        letter-spacing: 2px;
+    }
+    .book {
+        padding: 12px;
+        margin: 10px 0;
+        background: #1c1c1c;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 20px;
+        transition: 0.2s;
+    }
+    .book:hover {
+        background: #2a2a2a;
+    }
+</style>
+</head>
+<body>
+
+<h1>📚 My Book Library</h1>
+<div id="list">Loading…</div>
+
+<script>
+const icons = ["📘","📗","📕","📙","📒","📓"];
+
+async function loadBooks() {
+    let response = await fetch(".");
+    let text = await response.text();
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(text, "text/html");
+
+    let files = [...doc.querySelectorAll("a")]
+        .map(a => a.getAttribute("href"))
+        .filter(f => f.endsWith(".html") && f !== "library.html");
+
+    // Sort alphabetically (newest last if you name them in order)
+    files.sort();
+
+    let list = document.getElementById("list");
+    list.innerHTML = "";
+
+    for (let file of files) {
+        let html = await fetch(file).then(r => r.text());
+        let titleMatch = html.match(/<title>(.*?)<\/title>/i);
+        let title = titleMatch ? titleMatch[1] : file;
+
+        let icon = icons[Math.floor(Math.random() * icons.length)];
+
+        let div = document.createElement("div");
+        div.className = "book";
+        div.innerHTML = `${icon} ${title}`;
+        div.onclick = () => window.location = file;
+        list.appendChild(div);
+    }
+}
+
+loadBooks();
+</script>
+
+</body>
+</html>

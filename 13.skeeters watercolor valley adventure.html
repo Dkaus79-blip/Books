@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Watercolor Valley Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #6aa7ff 0, #4a6fb8 45%, #1f2f4f 100%);
+    color: #0f1630;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(60, 110, 190, 0.35);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #345a9c;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #5676b5;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #345a9c;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #1b2740;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f7f0ff, #c7ddff);
+    color: #1b2740;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* WATERCOLOR BACKGROUND SWIRLS */
+  .swirl {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(18px);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: screen;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+
+  .swirl1 {
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(255,200,220,0.9), transparent 70%);
+    top: -60px;
+    left: -40px;
+    animation-delay: 0s;
+  }
+
+  .swirl2 {
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(190,230,255,0.9), transparent 70%);
+    bottom: -80px;
+    right: -60px;
+    animation-delay: 4s;
+  }
+
+  .swirl3 {
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(210,255,220,0.9), transparent 70%);
+    top: 40%;
+    right: 10%;
+    animation-delay: 8s;
+  }
+
+  .swirl4 {
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(255,240,200,0.9), transparent 70%);
+    top: 20%;
+    left: -80px;
+    animation-delay: 6s;
+  }
+
+  .swirl5 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(200,255,240,0.9), transparent 70%);
+    bottom: 10%;
+    right: 20%;
+    animation-delay: 10s;
+  }
+
+  .swirl6 {
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(230,210,255,0.9), transparent 70%);
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 14s;
+  }
+
+  @keyframes drift {
+    0% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(15px, -10px) scale(1.05); }
+    100% { transform: translate(-10px, 10px) scale(1); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="swirl swirl1"></div>
+<div class="swirl swirl2"></div>
+<div class="swirl swirl3"></div>
+<div class="swirl swirl4"></div>
+<div class="swirl swirl5"></div>
+<div class="swirl swirl6"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter’s Watercolor Valley Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 18</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  { title: "A Faded Arrival", text: [
+      "A soft blue shimmer rose from Skeeter’s book, and the page pulled all four of them gently inside.",
+      "On the other side, the world looked like a giant painting brushed across the sky.",
+      "Hills rolled in gentle curves, trees looked like soft strokes, and the clouds were fluffy smudges of white.",
+      "But the colors were pale, like someone had washed them too many times.",
+      "Luna tilted her head. “Did someone forget to finish coloring this place?”"
+  ]},
+  { title: "A Quiet Valley", text: [
+      "The grass under their feet felt cool and slightly damp, like walking on a page that had just been painted.",
+      "Each step left a faint footprint of color that slowly faded back into the ground.",
+      "The sky was a washed-out blue, almost white at the edges.",
+      "Flowers nearby looked like pencil sketches with only a hint of pink and yellow.",
+      "Lily’s voice softened. “It’s pretty… but it looks tired.”"
+  ]},
+  { title: "Dripping Trees", text: [
+      "They walked toward a cluster of trees that looked like tall green brushstrokes.",
+      "As they got closer, they saw paint slowly dripping from the leaves, sliding down the trunks in thin streams.",
+      "The drips hit the ground and faded into nothing, leaving the bark a little more gray each time.",
+      "Skeeter watched quietly. “The color is leaving,” he said.",
+      "Lady Bug’s expression tightened. “Or being pulled away.”"
+  ]},
+  { title: "The Weak Ripple", text: [
+      "A shallow pool of water sat in a dip between the hills, its surface a pale swirl of blue and green.",
+      "Luna hurried over and peered in, seeing her reflection look slightly smudged.",
+      "She tapped the surface with one hand.",
+      "The water rippled, but the colors barely moved, as if they were too tired to swirl.",
+      "Luna frowned. “That’s not right. Paint is supposed to wiggle.”"
+  ]},
+  { title: "The First Running Color", text: [
+      "Just then, a bright streak of orange zipped past them like a tiny comet.",
+      "It left a glowing trail in the air that slowly faded into the pale sky.",
+      "Luna spun around. “Did you see that?!”",
+      "Another streak of orange darted between Skeeter’s feet and vanished behind a hill.",
+      "Skeeter blinked. “The colors are running.”"
+  ]},
+  { title: "Shy Blue", text: [
+      "A small puddle of blue paint trembled near Skeeter’s foot.",
+      "When he looked down, it tried to scoot behind him, as if hiding.",
+      "It wobbled and shook, leaving tiny blue dots on the ground.",
+      "Skeeter knelt slowly. “Hey there,” he said gently. “It’s okay.”",
+      "The blue puddle calmed just a little, clinging to his shadow."
+  ]},
+  { title: "Bouncy Yellow", text: [
+      "On the other side of the path, a splash of yellow bounced like a rubber ball.",
+      "It hopped in circles around Luna, leaving bright dots that quickly faded to pale cream.",
+      "Luna giggled and tried to boop it with her hand, but it sprang away with a cheerful wobble.",
+      "“This one’s not tired at all,” she laughed.",
+      "Lady Bug watched closely. “It’s excited… but it’s still not where it belongs.”"
+  ]},
+  { title: "Trembling Green", text: [
+      "Near a group of almost-colorless bushes, a patch of green paint shivered on the ground.",
+      "It tried to spread itself thin, as if it were afraid of being noticed.",
+      "Lily knelt beside it, her eyes soft and kind.",
+      "“You don’t have to be scared,” she whispered. “You’re part of this place.”",
+      "The green patch steadied, then slowly slid toward the nearest bush."
+  ]},
+  { title: "Lady Bug’s Thought", text: [
+      "Lady Bug stood still in the middle of the path, watching everything at once.",
+      "The fading hills. The dripping trees. The running streaks of orange and yellow.",
+      "The shy blue hiding behind Skeeter. The trembling green trying to return to the bushes.",
+      "“The valley isn’t just losing color,” she said quietly.",
+      "“The colors are afraid of disappearing.”"
+  ]},
+  { title: "A Gentle Realization", text: [
+      "Skeeter looked up at the pale sky, then down at the blue puddle still clinging to him.",
+      "“If the valley fades,” he said, “they fade too.”",
+      "Lily nodded slowly. “So they’re running around trying to hold on to whatever they can.”",
+      "Luna’s shoulders drooped. “I’d run too if I thought I was going to vanish.”",
+      "Lady Bug’s voice was calm. “Then we help them feel safe.”"
+  ]},
+  { title: "Following the Trails", text: [
+      "They began to follow the faint trails left behind by the running colors.",
+      "Orange streaks led them up a hill, then curved around in loops like playful scribbles.",
+      "Yellow dots bounced in a zigzag pattern, then faded near a cluster of pale flowers.",
+      "Blue smudges hugged the edges of rocks and tree roots, always near shade.",
+      "Green patches clung to the bases of bushes and tree trunks, trying to stay close to home."
+  ]},
+  { title: "The Watercolor Spirit", text: [
+      "At the top of a gentle hill, they found a small clearing where the colors were thinnest of all.",
+      "In the center, a soft figure shimmered like a person made of wet paint and light.",
+      "Its edges blurred and reformed, as if it were always halfway between shapes.",
+      "Its colors were faint, like a palette that had been rinsed too many times.",
+      "Lily whispered, “The watercolor spirit…”"
+  ]},
+  { title: "A Tired Guardian", text: [
+      "The spirit lifted its head, and its eyes looked like two pale brushstrokes of blue.",
+      "Its voice sounded like water running over paper.",
+      "“I tried to hold everything together,” it said softly.",
+      "“But the colors grew heavy, and I grew tired.”",
+      "A single drop of pale purple slid from its shoulder and vanished into the ground."
+  ]},
+  { title: "We’re Here to Help", text: [
+      "Skeeter stepped forward, the shy blue puddle still tucked behind his foot.",
+      "“You don’t have to do it alone,” he said.",
+      "Lily nodded. “We can help the colors find their places again.”",
+      "Luna bounced once. “And maybe make it even prettier!”",
+      "Lady Bug smiled gently. “We’ll be careful. We know this is your heart.”"
+  ]},
+  { title: "Gathering the Colors", text: [
+      "They split up across the hill, each moving in their own gentle way.",
+      "Luna chased the playful orange streaks, laughing as they looped around her and finally settled into the sunset sky.",
+      "Lily sat with the trembling greens, humming softly until they slid back into the bushes and leaves.",
+      "Skeeter walked slowly with the shy blues, guiding them up into the sky and down into the streams.",
+      "Lady Bug spoke quietly to the yellows and reds, helping them calm their bouncing and swirling."
+  ]},
+  { title: "The Valley Repaints Itself", text: [
+      "As the colors returned to their places, the hills deepened into soft greens and blues.",
+      "The trees filled in with rich shades of emerald and moss.",
+      "The sky brightened into a gentle wash of blue with hints of lavender at the edges.",
+      "Flowers bloomed with pinks, oranges, and yellows that blended like careful brushstrokes.",
+      "The whole valley looked like a painting finally finished with love."
+  ]},
+  { title: "A Rested Spirit", text: [
+      "The watercolor spirit stood taller now, its body glowing with fresh color.",
+      "Soft blues, purples, and golds flowed across its shape like moving paint.",
+      "“Thank you,” it said, its voice stronger but still gentle.",
+      "“I can breathe again. The valley can breathe again.”",
+      "Luna smiled. “You just needed a little help holding the brush.”"
+  ]},
+  { title: "A Painted Goodbye", text: [
+      "As they turned to leave, the valley gave them one last gift.",
+      "Colors swirled gently in the sky above them, forming a soft heart made of blended pink, blue, and gold.",
+      "Their own footprints behind them slowly filled in with shimmering color, then faded into the grass.",
+      "Skeeter looked back once, memorizing the view.",
+      "Lily, Luna, and Lady Bug walked beside him, their reflections trailing like watercolor shadows."
+  ]},
+  { title: "Back in the Room", text: [
+      "The page shimmered and pulled them gently home.",
+      "They landed softly in Skeeter’s bedroom.",
+      "The book closed with a quiet glow.",
+      "Lily smiled. “That valley just needed a little love.”",
+      "Luna grinned. “And we gave it a LOT.”"
+  ]}
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

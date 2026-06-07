@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Lucky Path Adventure</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #01320f 0, #01240c 50%, #001a08 100%);
+    color: #f3fff3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(5, 40, 15, 0.92);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(182,255,74,0.25);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.10);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #c8ff7a;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #b6ff4a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #c8ff7a;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #f3fff3;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #c8ff7a, #b6ff4a);
+    color: #003318;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Lime Glow Decorations */
+  .lime_glow1 {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(182,255,74,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -30px;
+    right: -30px;
+    animation: pulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .lime_glow2 {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(255,215,0,0.22) 0%, transparent 70%);
+    border-radius: 50%;
+    bottom: -35px;
+    left: -35px;
+    animation: pulse2 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .lucky_swirl {
+    position: absolute;
+    width: 260px;
+    height: 3px;
+    background: linear-gradient(90deg, #c8ff7a, #b6ff4a, #ffffff);
+    opacity: 0.75;
+    border-radius: 999px;
+  }
+
+  .swirl1 {
+    top: 60px;
+    left: -40px;
+    transform: rotate(14deg);
+    animation: shimmer1 5s infinite;
+  }
+
+  .swirl2 {
+    bottom: 70px;
+    right: -50px;
+    transform: rotate(-18deg);
+    animation: shimmer2 6s infinite;
+  }
+
+  /* Tiny Leprechaun Hat Glow */
+  .hat_glow {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    background: radial-gradient(circle, rgba(182,255,74,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    top: 10px;
+    left: 10px;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer1 {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.9; }
+    100% { opacity: 0.3; }
+  }
+
+  @keyframes shimmer2 {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.2; transform: scale(0.9); }
+    50% { opacity: 0.55; transform: scale(1.05); }
+    100% { opacity: 0.2; transform: scale(0.9); }
+  }
+
+  @keyframes pulse2 {
+    0% { opacity: 0.15; transform: scale(0.85); }
+    50% { opacity: 0.45; transform: scale(1.05); }
+    100% { opacity: 0.15; transform: scale(0.85); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="book">
+
+  <!-- Lime Glow Decorations -->
+  <div class="lime_glow1"></div>
+  <div class="lime_glow2"></div>
+  <div class="lucky_swirl swirl1"></div>
+  <div class="lucky_swirl swirl2"></div>
+  <div class="hat_glow"></div>
+
+  <div class="header">
+    <div class="title">Skeeter’s Lucky Path Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 16</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  { title: "A Familiar Glow", text: [
+      "Skeeter’s book shimmered with a bright lime glow.",
+      "Lily smiled. “That’s new.”",
+      "Luna bounced. “St. Paddy’s World again!”",
+      "Lady Bug watched calmly as lime sparks drifted upward.",
+      "The page pulled all four of them inside."
+  ]},
+  { title: "Back on the Lucky Paths", text: [
+      "They landed on a glowing clover‑shaped platform.",
+      "Lime trails stretched out in twisting, shifting patterns.",
+      "Golden sparkles drifted like tiny fireflies.",
+      "Lady Bug looked around with quiet curiosity.",
+      "“This place feels alive,” she said softly."
+  ]},
+  { title: "A World Remembered", text: [
+      "Skeeter pointed toward a familiar archway of woven vines.",
+      "“We came through there last time.”",
+      "Lily touched a glowing clover and it chimed gently.",
+      "Luna grinned. “Feels like coming home.”",
+      "Lady Bug nodded. “Then let’s walk it together.”"
+  ]},
+  { title: "The Paths Shift", text: [
+      "The trails rearranged themselves with soft clicks.",
+      "Clover tiles rotated like puzzle pieces.",
+      "Lady Bug watched the movement with calm focus.",
+      "“It’s rhythmic,” she said. “Like a pattern.”",
+      "Skeeter smiled. “You’re good at this already.”"
+  ]},
+  { title: "A Lucky Breeze", text: [
+      "A warm breeze carried tiny golden leaves past them.",
+      "They swirled playfully around Lady Bug’s rose‑red sash.",
+      "Lily giggled as one landed on her nose.",
+      "Luna tried to catch them but they floated away.",
+      "The world felt cheerful and welcoming."
+  ]},
+  { title: "A Clover Gate", text: [
+      "A tall gate of glowing lime clovers blocked the path.",
+      "Symbols shimmered across its surface.",
+      "Lady Bug stepped forward, studying the patterns.",
+      "“It’s a sequence,” she murmured.",
+      "Skeeter nodded. “We solved one like this before.”"
+  ]},
+  { title: "Working the Pattern", text: [
+      "Lady Bug traced the symbols with steady fingers.",
+      "Lily added gentle touches that made the clovers glow brighter.",
+      "Luna tapped one and it chimed like a bell.",
+      "Skeeter pressed the final symbol.",
+      "The gate opened with a warm lime shimmer."
+  ]},
+  { title: "A Twist of Luck", text: [
+      "The path ahead split into three glowing trails.",
+      "Each one flickered with a different shade of lime.",
+      "Luna pointed. “Middle one! Always the middle!”",
+      "Lady Bug smiled. “Luck isn’t random here.”",
+      "Her compass glowed softly, pointing left."
+  ]},
+  { title: "The Clover Bridge", text: [
+      "A long bridge of floating clovers stretched before them.",
+      "Some tiles flickered, others glowed steady.",
+      "Lady Bug stepped lightly, reading the rhythm.",
+      "The others followed her calm lead.",
+      "The bridge hummed beneath their feet."
+  ]},
+  { title: "A Gentle Challenge", text: [
+      "A ring of golden clovers rose around them.",
+      "They spun slowly, forming a puzzle in the air.",
+      "Lily reached out and steadied one.",
+      "Skeeter aligned another with a soft click.",
+      "Lady Bug finished the pattern with quiet confidence."
+  ]},
+  { title: "The Heart of Luck", text: [
+      "A glowing lime clover crystal floated above a small hill.",
+      "Its light pulsed gently, like a heartbeat.",
+      "Lady Bug approached it with calm respect.",
+      "The crystal brightened as the four stood together.",
+      "The world seemed to smile around them."
+  ]},
+  { title: "A Blessing of Clover", text: [
+      "Golden sparkles drifted down like warm snow.",
+      "They landed softly on each of them.",
+      "Luna laughed as her hair glowed lime.",
+      "Lily twirled in the falling light.",
+      "Lady Bug closed her eyes, peaceful."
+  ]},
+  { title: "A Lucky Path Forward", text: [
+      "The trails rearranged into a single glowing path.",
+      "It led back toward the archway they arrived through.",
+      "Skeeter felt the world gently guiding them home.",
+      "Lady Bug touched a clover tile. “Thank you,” she whispered.",
+      "The tile chimed softly in reply."
+  ]},
+  { title: "Heading Back", text: [
+      "The page shimmered, calling them to return.",
+      "Luna stretched. “I love this place.”",
+      "Lily smiled. “It loves us too.”",
+      "Lady Bug stepped closer to the light.",
+      "Together, they walked through."
+  ]},
+  { title: "Back in Skeeter’s Room", text: [
+      "They landed gently on the bedroom floor.",
+      "The book closed itself with a soft lime glow.",
+      "Lady Bug looked around, taking in the cozy space.",
+      "Luna flopped onto the bed dramatically.",
+      "Lily giggled at her."
+  ]},
+  { title: "Lucky to Be Four", text: [
+      "Skeeter looked at his friends — all three of them.",
+      "The room felt warm and full.",
+      "Lady Bug’s calm smile completed the moment.",
+      "“We make a good team,” Skeeter said.",
+      "And they all knew he was right."
+  ]}
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

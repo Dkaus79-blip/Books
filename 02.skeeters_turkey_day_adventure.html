@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Turkey Day Adventure</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #3b2408 0, #1a0f04 55%, #000 100%);
+    color: #fdfdfd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(30, 18, 6, 0.95);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.7);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #ffddaa;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #ffcc7a;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffb347, #ff7b54);
+    color: #2b1300;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Thanksgiving graphics */
+  .leaf, .turkey {
+    position: absolute;
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
+  .leaf {
+    width: 18px;
+    height: 18px;
+    background: radial-gradient(circle at 30% 30%, #ffdd99 0, #ff9933 40%, #b35a00 100%);
+    border-radius: 4px;
+    transform: rotate(25deg);
+    animation: leafFall 7s linear infinite;
+  }
+
+  .leaf.l1 { top: -10px; left: 20%; animation-delay: 0s; }
+  .leaf.l2 { top: -10px; left: 50%; animation-delay: 2s; }
+  .leaf.l3 { top: -10px; left: 75%; animation-delay: 4s; }
+
+  .turkey {
+    width: 50px;
+    height: 40px;
+    bottom: 10px;
+    right: 20px;
+    background: #5a2d0c;
+    border-radius: 50% 50% 40% 40%;
+    box-shadow: 0 0 12px rgba(255,180,90,0.6);
+  }
+
+  .turkey::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    background: #5a2d0c;
+    border-radius: 50%;
+    top: -10px;
+    left: 14px;
+  }
+
+  @keyframes leafFall {
+    from { transform: translateY(0) rotate(0deg); opacity: 1; }
+    to { transform: translateY(260px) rotate(90deg); opacity: 0; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="book">
+  <div class="leaf l1"></div>
+  <div class="leaf l2"></div>
+  <div class="leaf l3"></div>
+  <div class="turkey"></div>
+
+  <div class="header">
+    <div class="title">Skeeter’s Turkey Day Adventure</div>
+    <div class="indicator" id="indicator">Page 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "The Wrapped Book",
+    text: [
+      "A brown paper–wrapped book sat on Skeeter’s porch, tied with twine and pressed leaves.",
+      "Warm orange light glowed from the edges.",
+      "A tag read: For Skeeter — we need your help again.",
+      "He opened it. The world spun into swirling leaves."
+    ]
+  },
+  {
+    title: "Pulled Into Autumn",
+    text: [
+      "A gust of warm wind wrapped around him.",
+      "Leaves lifted him off his feet like tiny hands.",
+      "The porch vanished in a whirl of gold and orange.",
+      "Skeeter landed softly on a bed of crunchy leaves."
+    ]
+  },
+  {
+    title: "Harvest Hollow",
+    text: [
+      "He stood in a forest glowing with autumn colors.",
+      "Pumpkins, gourds, and tall cornstalks lined a winding path.",
+      "A wooden sign read: Welcome to Harvest Hollow.",
+      "Skeeter brushed leaves from his hair."
+    ]
+  },
+  {
+    title: "The Autumn Creatures",
+    text: [
+      "A squirrel in a tiny scarf scampered up.",
+      "A fox wearing a cloak of leaves padded beside him.",
+      "A wise old owl fluttered down from a branch.",
+      "“You came,” the owl said. “We hoped you would.”"
+    ]
+  },
+  {
+    title: "The Missing Great Turkey",
+    text: [
+      "The creatures gathered around him.",
+      "“The Great Turkey is missing,” the fox said.",
+      "“Without him, the Feast of Thanks cannot begin,” added the owl.",
+      "Skeeter felt a familiar tug — another world needed him."
+    ]
+  },
+  {
+    title: "The Feather Trail",
+    text: [
+      "Shimmering feathers lay scattered on the path.",
+      "They glowed faintly, pointing toward the deeper woods.",
+      "The squirrel sniffed one nervously.",
+      "“He left in a hurry,” the squirrel whispered."
+    ]
+  },
+  {
+    title: "Cornfield Clues",
+    text: [
+      "Tall cornstalks rustled as they entered the field.",
+      "Huge footprints pressed into the dirt.",
+      "A broken lantern lay half-buried in husks.",
+      "Something big had been running."
+    ]
+  },
+  {
+    title: "Pumpkin Patch Village",
+    text: [
+      "Pumpkin-folk peeked from behind glowing gourds.",
+      "“The Great Turkey passed through,” one said.",
+      "“He looked sad… like he thought no one needed him.”",
+      "Skeeter’s heart sank a little."
+    ]
+  },
+  {
+    title: "The Lonely Hill",
+    text: [
+      "They followed the trail to a hill covered in leaves.",
+      "There, sitting alone, was the Great Turkey.",
+      "His feathers drooped like wilted petals.",
+      "“Everyone is too busy for me,” he sighed."
+    ]
+  },
+  {
+    title: "Skeeter Speaks",
+    text: [
+      "Skeeter stepped forward gently.",
+      "“They’re preparing the feast because of you,” he said.",
+      "“You’re the heart of this day. They need you.”",
+      "The Great Turkey blinked, surprised."
+    ]
+  },
+  {
+    title: "A Change of Heart",
+    text: [
+      "The fox bowed respectfully.",
+      "The owl hooted warmly.",
+      "The squirrel offered a tiny acorn as thanks.",
+      "Slowly, the Great Turkey stood tall again."
+    ]
+  },
+  {
+    title: "The Return",
+    text: [
+      "They walked back to Harvest Hollow together.",
+      "Leaves swirled in celebration around them.",
+      "Pumpkin-folk cheered as the Great Turkey arrived.",
+      "Warm golden light filled the air."
+    ]
+  },
+  {
+    title: "The Feast of Thanks",
+    text: [
+      "Long tables appeared, covered in autumn foods.",
+      "Creatures gathered, laughing and sharing stories.",
+      "The Great Turkey took his place at the head.",
+      "“Thank you, Skeeter,” he said softly."
+    ]
+  },
+  {
+    title: "The Swirling Light",
+    text: [
+      "The world shimmered like warm candlelight.",
+      "Leaves lifted into the air, circling him.",
+      "The book’s magic tugged gently at his hands.",
+      "It was time to go home."
+    ]
+  },
+  {
+    title: "Back Home",
+    text: [
+      "Skeeter blinked and found himself on his porch.",
+      "The Thanksgiving book rested in his lap.",
+      "A single golden leaf lay beside him.",
+      "It glowed with quiet gratitude."
+    ]
+  },
+  {
+    title: "A New Message",
+    text: [
+      "On the last page, new words appeared:",
+      "Thank you for saving our Feast of Thanks.",
+      "There are always more worlds waiting.",
+      "Skeeter smiled, already wondering what might come next."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
