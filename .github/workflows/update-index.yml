@@ -6,13 +6,16 @@ on:
       - "*.html"
       - "!index.html"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Generate index.html
         run: |
