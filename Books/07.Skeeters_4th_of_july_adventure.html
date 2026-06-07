@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Fourth of July Adventure</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #0a0f2d 0, #050a1a 50%, #02040d 100%);
+    color: #e8e8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(10, 10, 25, 0.85);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #ff4b4b;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7aa7ff;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #ff4b4b;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #e8e8ff;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff4b4b, #4b6aff);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Fireworks graphics */
+  .spark, .burst, .trail, .flag {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  .spark {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #ffffff 0, #ffcccc 60%, transparent 100%);
+    border-radius: 50%;
+    animation: sparkPulse 2.4s ease-in-out infinite;
+  }
+  .spark.s1 { bottom: 12px; right: 24px; }
+  .spark.s2 { bottom: 12px; left: 24px; animation-delay: 1.2s; }
+
+  .burst {
+    width: 80px;
+    height: 80px;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle, #ffffff 0, #ff4b4b 40%, transparent 70%),
+      radial-gradient(circle, #ffffff 0, #4b6aff 40%, transparent 70%);
+    border-radius: 50%;
+    animation: burstFade 6s linear infinite;
+  }
+
+  .trail {
+    width: 140px;
+    height: 4px;
+    bottom: 6px;
+    left: 18px;
+    background: linear-gradient(90deg, #ff4b4b, #ffffff, #4b6aff);
+    opacity: 0.6;
+    animation: trailGlow 3s ease-in-out infinite;
+  }
+
+  /* USA flag accents */
+  .flag {
+    width: 40px;
+    height: 25px;
+    bottom: 10px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0.9;
+  }
+
+  .flag.left {
+    left: 10px;
+    background-image: url('https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg');
+  }
+
+  .flag.right {
+    right: 10px;
+    background-image: url('https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg');
+  }
+
+  @keyframes sparkPulse {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0.6; }
+  }
+
+  @keyframes burstFade {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  }
+
+  @keyframes trailGlow {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="book">
+  <div class="burst"></div>
+  <div class="trail"></div>
+  <div class="spark s1"></div>
+  <div class="spark s2"></div>
+
+  <div class="flag left"></div>
+  <div class="flag right"></div>
+
+  <div class="header">
+    <div class="title">Skeeter’s Fourth of July Adventure</div>
+    <div class="indicator" id="indicator">Page 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+/* STORY CONTENT REMAINS THE SAME — ONLY GRAPHICS UPDATED */
+const pages = [
+  {
+    title: "The Firework Book",
+    text: [
+      "A red, white, and blue book appeared on Skeeter’s dresser, glowing like a sparkler.",
+      "Tiny bursts of light popped from its cover in soft crackles.",
+      "On the first page, glowing words read: The Grand Firework will not ignite.",
+      "Skeeter felt a familiar excitement. Another world needed him."
+    ]
+  },
+  {
+    title: "Lily Arrives",
+    text: [
+      "Lily hurried in, her heart charm glowing bright red.",
+      "“The book’s calling us again,” she said with a smile.",
+      "Skeeter nodded. “Let’s see what’s waiting this time.”",
+      "They opened the book together as fireworks of light swirled around them."
+    ]
+  },
+  {
+    title: "Firework Fields",
+    text: [
+      "They landed in a twilight world where fireworks bloomed like flowers in the sky.",
+      "Spark trails drifted through the air like glowing ribbons.",
+      "Lanterns floated upward, leaving shimmering paths behind them.",
+      "But the biggest firework tower stood dark and silent."
+    ]
+  },
+  {
+    title: "The Grand Firework",
+    text: [
+      "A tall structure shaped like a giant star stood at the center of the field.",
+      "It was supposed to burst into the sky at midnight, filling the realm with joy.",
+      "But now it flickered weakly, sparks sputtering out.",
+      "“Something’s wrong,” Lily whispered."
+    ]
+  },
+  {
+    title: "A Flash of Trouble",
+    text: [
+      "A sudden burst of glitter exploded behind them.",
+      "Skeeter shielded his eyes. Lily gasped.",
+      "A tiny girl tumbled out of the spark cloud, giggling nervously.",
+      "“Oops… didn’t mean to do that.”"
+    ]
+  },
+  {
+    title: "Meet Luna",
+    text: [
+      "She had bright eyes, messy spark‑covered hair, and a grin that said trouble.",
+      "“I’m Luna,” she chirped. “I was practicing a new spark spell.”",
+      "She looked younger than Lily, full of energy and mischief.",
+      "“And I… might’ve broken the Grand Firework.”"
+    ]
+  },
+  {
+    title: "The Confession",
+    text: [
+      "Luna kicked at the ground, sending tiny sparks flying.",
+      "“I just wanted to make the biggest firework ever,” she said softly.",
+      "“But it fizzled and… everything went dark.”",
+      "Lily knelt beside her. “It’s okay. We’ll fix it together.”"
+    ]
+  },
+  {
+    title: "Inside the Firework Tower",
+    text: [
+      "They stepped inside the Grand Firework, where gears and spark‑crystals lined the walls.",
+      "Some crystals were cracked, others dim.",
+      "Luna winced. “My spell overloaded them.”",
+      "Skeeter smiled. “Then we’ll recharge them.”"
+    ]
+  },
+  {
+    title: "Spark Crystals",
+    text: [
+      "Luna showed them how each crystal needed a different kind of spark.",
+      "“This one needs courage,” she said, pointing to a red crystal.",
+      "“This one needs kindness,” she added, touching a blue one.",
+      "Lily and Skeeter exchanged a knowing smile."
+    ]
+  },
+  {
+    title: "Courage Spark",
+    text: [
+      "Skeeter placed his hand on the red crystal.",
+      "It glowed brighter as he thought of all the worlds he’d helped.",
+      "A warm burst of light filled the chamber.",
+      "Luna clapped. “That’s perfect!”"
+    ]
+  },
+  {
+    title: "Kindness Spark",
+    text: [
+      "Lily touched the blue crystal gently.",
+      "She thought of helping Luna, of comforting her when she was scared.",
+      "The crystal lit up with a soft, steady glow.",
+      "Luna’s eyes sparkled. “You’re really good at this.”"
+    ]
+  },
+  {
+    title: "Luna’s Spark",
+    text: [
+      "Now it was Luna’s turn.",
+      "She placed her hands on a white crystal, her fingers trembling.",
+      "“I’m sorry I messed everything up,” she whispered.",
+      "The crystal burst into brilliant light, forgiving her instantly."
+    ]
+  },
+  {
+    title: "The Grand Firework Ignites",
+    text: [
+      "The tower rumbled as all the crystals lit up.",
+      "Skeeter, Lily, and Luna ran outside just in time.",
+      "The Grand Firework shot into the sky with a roar.",
+      "It exploded into a thousand colors, lighting the whole realm."
+    ]
+  },
+  {
+    title: "A New Friend",
+    text: [
+      "A glowing figure appeared — the Firework Guardian.",
+      "“Luna,” he said gently, “you have a brave heart, even if your sparks are wild.”",
+      "He handed her a tiny charm shaped like a firework.",
+      "“Travel with them. Learn. Grow.”"
+    ]
+  },
+  {
+    title: "The Trio Forms",
+    text: [
+      "Luna looked at Skeeter and Lily with wide eyes.",
+      "“You… want me to come with you?”",
+      "Lily smiled warmly. “Of course we do.”",
+      "Skeeter nodded. “Every team needs a spark.”"
+    ]
+  },
+  {
+    title: "Heading Home",
+    text: [
+      "Fireworks swirled around them as the world faded.",
+      "Skeeter landed back in his room, the firework book glowing softly.",
+      "Lily and Luna stood beside him, their charms shining.",
+      "The trio was ready for whatever adventure came next."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

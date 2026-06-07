@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s PromLand Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #ffe5f0 0, #f3c4dd 35%, #b47aa8 100%);
+    color: #120f24;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 255, 255, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(120, 60, 120, 0.55);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #3a2a7a;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #5b4aa0;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #3a2a7a;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #120f24;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #fbe9ff);
+    color: #2a214f;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* PROM LANTERNS (generic, festival-style) */
+  .lantern {
+    position: absolute;
+    width: 70px;
+    height: 110px;
+    border-radius: 30px;
+    background: radial-gradient(circle at 50% 20%, #fffdf7 0, #ffd9e6 40%, #ff9fc0 100%);
+    box-shadow: 0 0 18px rgba(255, 190, 210, 0.9);
+    transform-origin: top center;
+    animation: lanternSwing 9s ease-in-out infinite alternate;
+    opacity: 0.9;
+    z-index: 1;
+  }
+
+  .lantern::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: rgba(255,255,255,0.7);
+    transform: translateX(-50%);
+  }
+
+  .lantern1 { top: -10px; left: 10%; animation-delay: 0s; }
+  .lantern2 { top: -20px; left: 32%; animation-delay: 2s; }
+  .lantern3 { top: -15px; left: 54%; animation-delay: 4s; }
+  .lantern4 { top: -25px; left: 76%; animation-delay: 1s; }
+
+  @keyframes lanternSwing {
+    0%   { transform: rotate(-4deg); }
+    50%  { transform: rotate(3deg); }
+    100% { transform: rotate(-2deg); }
+  }
+
+  /* SPARKLES */
+  .sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fffdf0 0, rgba(255,255,255,0));
+    box-shadow: 0 0 10px rgba(255, 250, 220, 0.9);
+    animation: sparkleDrift 18s linear infinite;
+    opacity: 0.9;
+    z-index: 2;
+  }
+
+  .sparkle1 { left: 15%; animation-delay: 0s; }
+  .sparkle2 { left: 30%; animation-delay: 4s; }
+  .sparkle3 { left: 50%; animation-delay: 8s; }
+  .sparkle4 { left: 70%; animation-delay: 2s; }
+  .sparkle5 { left: 85%; animation-delay: 10s; }
+
+  @keyframes sparkleDrift {
+    0%   { top: 110%; transform: translateX(0); opacity: 0.1; }
+    30%  { opacity: 1; }
+    50%  { transform: translateX(18px); }
+    100% { top: -10%; transform: translateX(-10px); opacity: 0.2; }
+  }
+
+  /* LIGHT RIBBONS */
+  .ribbon {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.35) 0, rgba(255,255,255,0) 70%);
+    opacity: 0.6;
+    z-index: 0;
+    animation: ribbonWave 24s linear infinite;
+  }
+
+  .ribbon1 { top: 20%; left: -10%; animation-delay: 0s; }
+  .ribbon2 { top: 60%; right: -15%; animation-delay: 6s; }
+  .ribbon3 { top: 10%; right: 5%; animation-delay: 12s; }
+
+  @keyframes ribbonWave {
+    0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.2; }
+    30%  { opacity: 0.6; }
+    50%  { transform: translateX(20px) translateY(-10px) scale(1.05); }
+    100% { transform: translateX(-10px) translateY(10px) scale(0.95); opacity: 0.1; }
+  }
+
+  /* GROUND GLOW */
+  .ground-glow {
+    position: fixed;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    height: 160px;
+    background: radial-gradient(circle at 50% 0, rgba(255, 230, 250, 0.9) 0, rgba(255, 230, 250, 0.0) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="lantern lantern1"></div>
+<div class="lantern lantern2"></div>
+<div class="lantern lantern3"></div>
+<div class="lantern lantern4"></div>
+
+<div class="sparkle sparkle1"></div>
+<div class="sparkle sparkle2"></div>
+<div class="sparkle sparkle3"></div>
+<div class="sparkle sparkle4"></div>
+<div class="sparkle sparkle5"></div>
+
+<div class="ribbon ribbon1"></div>
+<div class="ribbon ribbon2"></div>
+<div class="ribbon ribbon3"></div>
+
+<div class="ground-glow"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter’s Promland Adventure </div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Three Little Memories",
+    text: [
+      "Skeeter sat cross-legged on his bed, three plush toys lined up in front of him.",
+      "There was a tiny burger with BOB stitched on the side, a small red dog, and a stuffed banana with a stitched smile.",
+      "Lady Bug sat beside him, her back against the wall, watching the toys quietly.",
+      "“It’s funny,” Skeeter said. “They all feel important, but I don’t know why.”"
+    ]
+  },
+  {
+    title: "Warm Feelings",
+    text: [
+      "Lady Bug tilted her head. “The burger felt warm,” she said softly. “Like we were supposed to remember something about it.”",
+      "She tapped the red dog with one finger. “And this one felt like a friend.”",
+      "Skeeter picked up the stuffed banana. “This one too,” he said. “Like it belonged to someone we cared about.”",
+      "They both sat in the quiet room, surrounded by a feeling they couldn’t quite name."
+    ]
+  },
+  {
+    title: "The Book Listens",
+    text: [
+      "The magic book rested at the foot of the bed, closed but not asleep.",
+      "As Skeeter and Lady Bug talked, a soft glow began to shine from its edges.",
+      "Lady Bug noticed it first. “Skeeter,” she whispered, nodding toward the book.",
+      "The glow grew warmer, like lantern light behind a curtain."
+    ]
+  },
+  {
+    title: "Pulled by Lantern Light",
+    text: [
+      "The cover of the book opened just a crack, and a gentle breeze brushed past their faces.",
+      "It smelled like night air and grass and something sweet, like flowers and warm bread.",
+      "Skeeter reached out, and the glow wrapped around his fingers like a ribbon.",
+      "The room faded, and the light pulled them forward, warm and glowing."
+    ]
+  },
+  {
+    title: "Promland",
+    text: [
+      "They landed on soft grass under a sky the color of soft rose.",
+      "Lanterns hung from invisible strings above them, swaying gently in the evening air.",
+      "Some lanterns were round and warm, and a few were shaped like tiny red dogs, glowing with a friendly light.",
+      "Music drifted through the air, a slow, gentle song that made the whole world feel like a dance waiting to happen."
+    ]
+  },
+  {
+    title: "Burger Flowers",
+    text: [
+      "Skeeter looked down and saw flowers blooming all around the clearing.",
+      "At first they looked like ordinary blossoms, but when he leaned closer, he saw they were shaped like tiny, soft burgers.",
+      "Each one had a little stitched line across the side, like a name that had once been written there.",
+      "Lady Bug smiled. “Burger flowers,” she said. “Of course.”"
+    ]
+  },
+  {
+    title: "Banana Garlands",
+    text: [
+      "Across the clearing, strings of decorations hung between the lanterns.",
+      "They were shaped like tiny bananas, each one with a little stitched smile.",
+      "They swayed gently in the breeze, catching the lantern light and glowing a soft yellow.",
+      "Skeeter felt that warm feeling again, the one he couldn’t quite explain."
+    ]
+  },
+  {
+    title: "A Gentle Host",
+    text: [
+      "A figure stepped forward from the edge of the clearing, where the shadows were soft and kind.",
+      "It was a tall woman in a simple dress, her hair pinned back with a small lantern-shaped clip.",
+      "“Welcome,” she said, her voice warm. “You’ve arrived just in time for the lantern prom.”",
+      "Lady Bug glanced around. “We didn’t know we were coming,” she admitted."
+    ]
+  },
+  {
+    title: "Why They Were Called",
+    text: [
+      "The woman smiled. “Sometimes you don’t have to know,” she said. “Sometimes the world remembers for you.”",
+      "She nodded toward the burger flowers, the red dog lanterns, and the banana garlands.",
+      "“You’ve carried these feelings with you for a long time,” she said. “Tonight, they brought you here.”",
+      "Skeeter felt his chest grow warm. “It felt like we were missing someone,” he said quietly."
+    ]
+  },
+  {
+    title: "Jane Arrives",
+    text: [
+      "A soft rustle came from the other side of the clearing.",
+      "Jane stepped out from behind a curtain of lantern light, wearing a simple dress that swished around her knees.",
+      "Her eyes were wide with wonder as she looked up at the glowing sky.",
+      "When she saw Skeeter and Lady Bug, her face lit up. “You’re here too!” she said."
+    ]
+  },
+  {
+    title: "A Shared Mystery",
+    text: [
+      "Jane walked over the grass, her shoes barely making a sound.",
+      "“I remember the stuffed banana,” she said. “It felt like it belonged to someone I knew.”",
+      "Skeeter nodded. “The burger and the red dog felt that way too,” he said.",
+      "Lady Bug folded her hands. “It’s like we’re all remembering the same person,” she whispered."
+    ]
+  },
+  {
+    title: "The Music Changes",
+    text: [
+      "The music in the clearing shifted, becoming a soft slow dance.",
+      "Lanterns dipped lower, their light turning a little warmer, a little pinker.",
+      "The burger flowers and banana garlands glowed softly around the edge of the clearing.",
+      "Jane looked toward the far edge of the clearing, where the lantern light was brightest."
+    ]
+  },
+  {
+    title: "A Sparkly Dress",
+    text: [
+      "From the glow at the edge of the clearing, someone stepped forward.",
+      "She wore a sparkly dress that shimmered pinkish-white, catching every bit of lantern light.",
+      "The dress glowed with a twilight pink color, soft and magical, like the sky had decided to become fabric.",
+      "Jane’s breath caught. “I know that dress,” she whispered."
+    ]
+  },
+  {
+    title: "Warm Recognition",
+    text: [
+      "Skeeter felt something in his chest, a warmth that spread all the way to his fingertips.",
+      "Lady Bug’s eyes softened. “I feel like we’ve danced with her before,” she said quietly.",
+      "The girl in the sparkly dress walked toward them, her steps gentle on the grass.",
+      "She smiled, and the whole clearing seemed to glow a little brighter."
+    ]
+  },
+  {
+    title: "Long-Lost Friends",
+    text: [
+      "Jane took a small step forward, her hands curled at her sides.",
+      "“I don’t remember everything,” she said softly, “but I remember how it felt.”",
+      "The girl in the sparkly dress nodded. “Me too,” she replied. “We were friends once. We just forgot the details.”",
+      "Her voice was warm, like a promise kept."
+    ]
+  },
+  {
+    title: "A Simple Question",
+    text: [
+      "The music swirled around them, gentle and slow.",
+      "The girl in the sparkly dress held out her hand to Jane.",
+      "“Would you like to dance?” she asked.",
+      "Jane smiled, her eyes shining. “I thought you’d never ask.”"
+    ]
+  },
+  {
+    title: "Jane and the Sparkly Dress",
+    text: [
+      "Jane placed her hand in the girl’s, and they stepped onto a clear space in the grass.",
+      "The lanterns above them dipped a little lower, as if they wanted a better look.",
+      "The burger flowers and banana garlands glowed softly around the edge of the clearing.",
+      "They began to dance, slow and easy, like they had done it a hundred times before."
+    ]
+  },
+  {
+    title: "Watching the Dance",
+    text: [
+      "Skeeter and Lady Bug watched from the side, their hearts feeling strangely full.",
+      "“I don’t remember her name,” Skeeter said quietly, “but I feel like I should.”",
+      "Lady Bug nodded. “Names fade,” she said. “Feelings don’t.”",
+      "The girl in the sparkly dress laughed at something Jane said, and the sound rang like a tiny bell."
+    ]
+  },
+  {
+    title: "A Gentle Invitation",
+    text: [
+      "After a while, the girl and Jane slowed to a stop.",
+      "Jane turned toward Skeeter and Lady Bug, her cheeks warm from dancing.",
+      "“Come on,” she called. “You’re part of this too.”",
+      "The girl in the sparkly dress nodded, her eyes kind. “There’s room for everyone,” she said."
+    ]
+  },
+  {
+    title: "Skeeter’s Turn",
+    text: [
+      "Skeeter stepped forward, feeling a little shy and a little brave all at once.",
+      "Jane reached for his hand, and the girl in the sparkly dress stepped back with a smile.",
+      "“You and I danced once,” Jane said to him softly. “I think we’re supposed to do it again.”",
+      "They began to move with the music, slow and steady, the lantern light wrapping around them like a hug."
+    ]
+  },
+  {
+    title: "Lady Bug’s Turn",
+    text: [
+      "Lady Bug watched them for a moment, her heart feeling light.",
+      "The girl in the sparkly dress walked over and held out her hand.",
+      "“May I have this dance?” she asked.",
+      "Lady Bug smiled, a calm, steady smile. “I’d like that,” she said."
+    ]
+  },
+  {
+    title: "Dancing in Pairs",
+    text: [
+      "For a little while, the clearing held two quiet dances.",
+      "Jane and Skeeter moved together, their steps small and careful.",
+      "Lady Bug and the girl in the sparkly dress turned slowly in a circle, the lanterns reflecting in their eyes.",
+      "The music wrapped around all of them, soft and warm."
+    ]
+  },
+  {
+    title: "Everyone Together",
+    text: [
+      "Then the music shifted just a little, still slow but a bit brighter.",
+      "Jane laughed and reached for Lady Bug’s hand.",
+      "Skeeter stepped closer, and the girl in the sparkly dress joined them.",
+      "Soon they were all dancing together in a small circle, hands linked, feet brushing the soft grass."
+    ]
+  },
+  {
+    title: "A Promise Kept",
+    text: [
+      "The lanterns above them glowed a little brighter, especially the ones shaped like tiny red dogs.",
+      "The burger flowers and banana garlands shimmered at the edge of the clearing.",
+      "Jane looked at the girl in the sparkly dress and squeezed her hand.",
+      "“I’m glad we got to dance again,” she said."
+    ]
+  },
+  {
+    title: "No Need for Names",
+    text: [
+      "The girl in the sparkly dress smiled, her twilight-pink dress glowing softly.",
+      "“Me too,” she replied. “We don’t have to remember everything. We just have to remember how it feels.”",
+      "Skeeter nodded. “It feels like we were always supposed to be here,” he said.",
+      "Lady Bug looked around the clearing. “Like this was waiting for us,” she added."
+    ]
+  },
+  {
+    title: "The Last Song",
+    text: [
+      "The music began to slow, the notes stretching out like a yawn at the end of a long, happy day.",
+      "The lanterns rose a little higher, their light softening.",
+      "The burger flowers and banana garlands dimmed to a gentle glow.",
+      "They finished the dance with one last slow turn, then let their hands fall back to their sides."
+    ]
+  },
+  {
+    title: "Goodnight, Promland",
+    text: [
+      "The woman with the lantern-shaped hair clip stepped forward again.",
+      "“Thank you for coming,” she said. “Sometimes the heart needs a dance to remember what it already knows.”",
+      "Jane, Skeeter, Lady Bug, and the girl in the sparkly dress stood together in the center of the clearing.",
+      "The air around them shimmered with a soft, pinkish light."
+    ]
+  },
+  {
+    title: "A Gentle Fade",
+    text: [
+      "The lanterns blurred into stars, and the grass beneath their feet began to feel like blankets.",
+      "The music faded into the quiet hum of a familiar room.",
+      "Skeeter felt the book’s pages under his hands again.",
+      "The clearing of Promland slipped away like a dream that wanted to be remembered."
+    ]
+  },
+  {
+    title: "Back in Skeeter’s Room",
+    text: [
+      "They were back on Skeeter’s bed, the three plush toys lined up in front of them.",
+      "The burger, the red dog, and the stuffed banana looked exactly the same as before.",
+      "Jane sat beside them now, her dress a little rumpled, her cheeks still warm.",
+      "Lady Bug and Skeeter shared a quiet look that said more than words could."
+    ]
+  },
+  {
+    title: "A Quiet Smile",
+    text: [
+      "Skeeter picked up the burger plush and held it gently.",
+      "Jane reached for the stuffed banana, her fingers curling around it like it was an old friend.",
+      "Lady Bug rested her hand on the red dog plush, her touch calm and steady.",
+      "No one tried to explain anything. They just sat there, smiling softly."
+    ]
+  },
+  {
+    title: "The Feeling That Stayed",
+    text: [
+      "The book lay closed now, its cover cool and still.",
+      "The room was quiet, but it felt full, like it was holding something warm and secret.",
+      "Skeeter didn’t know if he would remember every detail of the lantern prom.",
+      "But he knew he would remember how it felt."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

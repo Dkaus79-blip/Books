@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Wizard’s Tower Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #0a0f24 0, #050713 45%, #02030a 100%);
+    color: #f0f4ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(10, 12, 28, 0.96);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(140, 180, 255, 0.35);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #bcd4ff;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #ffe8c8;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #bcd4ff;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #f0f4ff;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #d8e6ff, #ffe3c4);
+    color: #1a1f33;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* STORM CLOUD ORBS */
+  .storm-orb {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(80,100,150,0.35), rgba(20,30,60,0.1));
+    box-shadow: 0 0 40px rgba(120,150,255,0.25);
+    filter: blur(2px);
+    pointer-events: none;
+    z-index: 1;
+    animation: stormFloat 18s ease-in-out infinite alternate;
+  }
+
+  .storm1 { top: 10%; left: 8%; animation-delay: 0s; }
+  .storm2 { top: 55%; left: 15%; animation-delay: 4s; }
+  .storm3 { top: 25%; right: 12%; animation-delay: 8s; }
+  .storm4 { bottom: 10%; right: 18%; animation-delay: 12s; }
+
+  @keyframes stormFloat {
+    0%   { transform: translate(0,0) scale(1); opacity: 0.55; }
+    50%  { transform: translate(14px,-18px) scale(1.05); opacity: 0.75; }
+    100% { transform: translate(-12px,14px) scale(0.98); opacity: 0.6; }
+  }
+
+  /* STAR RUNES */
+  .star-rune {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,220,255,0.9), rgba(80,100,160,0.1));
+    box-shadow: 0 0 24px rgba(200,220,255,0.7);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 1;
+    animation: runeDrift 20s ease-in-out infinite alternate;
+  }
+
+  .star-rune::before {
+    content: "";
+    position: absolute;
+    inset: 20%;
+    border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,0.6);
+  }
+
+  .rune1 { top: 18%; left: 40%; animation-delay: 0s; }
+  .rune2 { top: 65%; left: 55%; animation-delay: 6s; }
+  .rune3 { top: 35%; right: 30%; animation-delay: 12s; }
+
+  @keyframes runeDrift {
+    0%   { transform: translate(0,0) scale(1); opacity: 0.7; }
+    50%  { transform: translate(10px,-14px) scale(1.05); opacity: 1; }
+    100% { transform: translate(-8px,10px) scale(0.98); opacity: 0.8; }
+  }
+
+  /* ARCANE RINGS */
+  .arcane-ring {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid rgba(180,200,255,0.4);
+    box-shadow: 0 0 18px rgba(180,200,255,0.3);
+    pointer-events: none;
+    z-index: 1;
+    animation: ringSpin 22s linear infinite;
+  }
+
+  .arcane-ring::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    border: 2px dotted rgba(220,230,255,0.6);
+  }
+
+  .ring1 { top: -40px; left: 50%; transform: translateX(-50%); }
+  .ring2 { bottom: -60px; left: 10%; animation-direction: reverse; }
+  .ring3 { bottom: -50px; right: 12%; }
+
+  @keyframes ringSpin {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to   { transform: translateX(-50%) rotate(360deg); }
+  }
+
+  .ring2, .ring3 {
+    transform: rotate(0deg);
+  }
+</style>
+</head>
+
+<body>
+
+<div class="storm-orb storm1"></div>
+<div class="storm-orb storm2"></div>
+<div class="storm-orb storm3"></div>
+<div class="storm-orb storm4"></div>
+
+<div class="star-rune rune1"></div>
+<div class="star-rune rune2"></div>
+<div class="star-rune rune3"></div>
+
+<div class="arcane-ring ring1"></div>
+<div class="arcane-ring ring2"></div>
+<div class="arcane-ring ring3"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter’s Wizard’s Tower Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 18</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  { title: "The Swirling Page", text: [
+      "A deep blue shimmer rose from Skeeter’s book, and the page pulled all four of them gently inside.",
+      "They landed on a stone floor that felt cool beneath their feet.",
+      "The air hummed softly, like distant thunder rolling through the walls.",
+      "Stars drifted lazily through the air, glowing like tiny lanterns.",
+      "Luna whispered, “Okay… this is definitely wizard weather.”"
+  ]},
+  { title: "The Tower Interior", text: [
+      "They stood inside a tall, round tower lit by floating candles.",
+      "Storm clouds drifted near the ceiling, glowing with soft silver lightning.",
+      "Shelves of scrolls and potions lined the walls, some gently rattling from the magical breeze.",
+      "A spiral staircase wound upward into the shadows.",
+      "Lily smiled. “It feels stormy, but safe.”"
+  ]},
+  { title: "A Desk of Chaos", text: [
+      "A large wooden table sat in the center, covered in open books and bubbling jars.",
+      "A quill scribbled by itself, pausing every few seconds as if thinking.",
+      "A tiny star‑shaped rune drifted down, landed on a book, then floated away again.",
+      "A brass bell rang once, even though no one touched it.",
+      "Lady Bug nodded. “Someone works very hard in here.”"
+  ]},
+  { title: "The Wizard Arrives", text: [
+      "A door creaked open, and an older man stepped through.",
+      "He wore a long robe dusted with chalky stars and a slightly crooked hat.",
+      "His beard was neat but uneven, like he trimmed it while reading.",
+      "He nearly bumped into a floating candle, then gently nudged it aside.",
+      "“Ah!” he said. “Visitors. How wonderfully unexpected.”"
+  ]},
+  { title: "Meeting Merlin", text: [
+      "He gave a small bow, his hat tilting dangerously.",
+      "“I am Merlin,” he said, “keeper of this tower and frequent misplacer of my own spectacles.”",
+      "He checked his pockets, then found his glasses on top of his head.",
+      "Luna grinned. “You’re exactly how I imagined you.”",
+      "Skeeter smiled. “I’m Skeeter. This is Lily, Luna, and Lady Bug.”"
+  ]},
+  { title: "Stormy Magic", text: [
+      "As they spoke, faint symbols drifted through the air like glowing dust.",
+      "Some hovered near the ceiling, spinning slowly in the storm clouds.",
+      "Others circled the bubbling jars on the table.",
+      "One tiny rune drifted near Luna’s shoulder, then zipped away when she tried to poke it.",
+      "Lily watched it go. “The magic feels… windy.”"
+  ]},
+  { title: "A Tower Out of Balance", text: [
+      "Merlin sighed softly.",
+      "“The tower has been unsettled,” he said. “Storm magic is leaking into everything.”",
+      "A broom floated overhead, bristles twitching like it was annoyed.",
+      "A potion bubbled too loudly, glowing bright blue.",
+      "Lady Bug folded her hands. “Something is stirring the magic too much.”"
+  ]},
+  { title: "The Spellbook Circle", text: [
+      "Merlin led them to a raised platform.",
+      "Four large books floated above it, glowing softly.",
+      "Each had a symbol: a star, a leaf, a drop of water, and a flame.",
+      "Every few seconds, one flickered too bright, then too dim.",
+      "Skeeter watched calmly. “They’re not in rhythm.”"
+  ]},
+  { title: "A Wizard’s Concern", text: [
+      "Merlin rubbed his forehead.",
+      "“These books keep the tower balanced,” he said.",
+      "“Light, growth, calm, and energy. But the storm outside has made them… competitive.”",
+      "Luna blinked. “Your books are fighting?”",
+      "Merlin sighed. “In a magical sense, yes.”"
+  ]},
+  { title: "Listening to the Tower", text: [
+      "Lady Bug stepped closer, her expression thoughtful.",
+      "“The star is too bright,” she said. “The flame is too jumpy. The leaf feels tangled. The water feels tired.”",
+      "Lily nodded. “They’re all trying too hard.”",
+      "Skeeter looked at Merlin. “Maybe they need help sharing the storm.”",
+      "Merlin’s eyes widened. “Oh… that makes perfect sense.”"
+  ]},
+  { title: "A Gentle Spell", text: [
+      "Merlin clapped once, and a chalk circle appeared around the platform.",
+      "“We’ll try something simple,” he said. “No explosions. Hopefully.”",
+      "Luna raised an eyebrow. “Hopefully?”",
+      "Merlin smiled sheepishly. “I’m better at big magic than quiet magic.”",
+      "Skeeter nodded. “We can help with quiet.”"
+  ]},
+  { title: "Sharing the Storm", text: [
+      "Merlin asked each of them to stand by a book.",
+      "Skeeter by the star, Lily by the leaf, Luna by the flame, Lady Bug by the water.",
+      "“Hold out a hand,” Merlin said. “Think of what that symbol means to you.”",
+      "They each took a slow breath.",
+      "The books glowed brighter, listening."
+  ]},
+  { title: "Light and Calm", text: [
+      "Skeeter pictured lantern light on a stormy night—steady and warm.",
+      "The star book softened into a gentle glow.",
+      "Lady Bug pictured a still pond under moonlight.",
+      "The water book brightened into a calm blue.",
+      "Merlin whispered, “Beautiful.”"
+  ]},
+  { title: "Growth and Energy", text: [
+      "Lily pictured a plant growing slowly toward the sun.",
+      "The leaf book untangled into a soft green glow.",
+      "Luna pictured running and laughing in the rain.",
+      "The flame book flickered playfully, then steadied.",
+      "The books began glowing in rhythm."
+  ]},
+  { title: "The Tower Breathes", text: [
+      "The storm clouds above them softened.",
+      "Lightning flickered gently instead of flashing wildly.",
+      "The broom drifted down and rested against the wall.",
+      "A bubbling potion calmed to a soft simmer.",
+      "Merlin let out a long breath. “Much better.”"
+  ]},
+  { title: "A Wizard’s Thanks", text: [
+      "The spellbooks closed themselves and floated into a neat stack.",
+      "Merlin adjusted his hat, which immediately slid crooked again.",
+      "“You’ve helped my tower remember how to share the storm,” he said.",
+      "Lily smiled. “Everyone needs help sometimes.”",
+      "Skeeter nodded. “Even magic.”"
+  ]},
+  { title: "A Funny Little Mishap", text: [
+      "Merlin snapped his fingers, and a teapot floated over.",
+      "It poured into four cups, then tried to pour into his hat.",
+      "He quickly moved the hat aside. “Still practicing the details.”",
+      "Luna giggled. “Your magic is adorable.”",
+      "Merlin bowed. “I do my best.”"
+  ]},
+  { title: "Back in the Room", text: [
+      "The page shimmered and pulled them gently home.",
+      "They landed softly in Skeeter’s bedroom.",
+      "The book closed with a quiet glow, a faint swirl of blue light fading away.",
+      "Lily smiled. “The tower just needed balance.”",
+      "Luna grinned. “And that wizard definitely needed a new hat.”"
+  ]}
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

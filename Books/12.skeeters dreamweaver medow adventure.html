@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Dreamweaver Meadow Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #3a2a78 0, #1d1740 50%, #0d0a1f 100%);
+    color: #f3f0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(40, 28, 78, 0.92);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(150,120,255,0.25);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #d7caff;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #bbaaff;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #d7caff;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #f3f0ff;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #d7caff, #a8c7ff);
+    color: #1d133a;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* DREAM BUBBLE DECORATIONS */
+  .bubble {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(200,170,255,0.25) 40%, rgba(150,120,255,0.12) 70%, transparent 100%);
+    border: 2px solid rgba(220,200,255,0.55);
+    box-shadow: 0 0 18px rgba(180,150,255,0.45);
+    animation: floatUp 12s ease-in-out infinite, wobble 6s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .bubble::after {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 25%;
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8), transparent 70%);
+    border-radius: 50%;
+    opacity: 0.55;
+    animation: sparkleDrift 5s ease-in-out infinite;
+  }
+
+  .bubble::before {
+    content: "";
+    position: absolute;
+    top: 8%;
+    left: 10%;
+    width: 60%;
+    height: 60%;
+    border-top: 3px solid rgba(255,255,255,0.7);
+    border-left: 3px solid rgba(255,255,255,0.7);
+    border-radius: 50%;
+    transform: rotate(-20deg);
+    opacity: 0.7;
+  }
+
+  .bubble1 { top: -40px; right: -30px; animation-delay: 0s; }
+  .bubble2 { bottom: -50px; left: -40px; animation-delay: 2s; }
+  .bubble3 { top: 40%; left: -60px; width: 110px; height: 110px; animation-delay: 4s; }
+  .bubble4 { bottom: 30%; right: -70px; width: 120px; height: 120px; animation-delay: 6s; }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-25px); }
+    100% { transform: translateY(0); }
+  }
+
+  @keyframes wobble {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes sparkleDrift {
+    0% { transform: translate(0,0); opacity: 0.6; }
+    50% { transform: translate(10px, -10px); opacity: 0.9; }
+    100% { transform: translate(0,0); opacity: 0.6; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- DREAM BUBBLES BEHIND THE BOOK -->
+<div class="bubble bubble1"></div>
+<div class="bubble bubble2"></div>
+<div class="bubble bubble3"></div>
+<div class="bubble bubble4"></div>
+
+<div class="book">
+
+  <div class="header">
+    <div class="title">Skeeter’s Dreamweaver Meadow Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 18</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  { title: "Dreamweaver Meadow", text: [
+      "A soft blue‑purple glow shimmered from Skeeter’s book, and the page pulled all four of them gently inside.",
+      "Dream‑bubbles floated like tiny moons above them, drifting lazily in the indigo sky.",
+      "The grass glowed with a gentle lavender light.",
+      "Luna whispered, “This place looks like a bedtime dream.”",
+      "Skeeter smiled softly. “Let’s explore.”"
+  ]},
+  { title: "Lantern Dreams", text: [
+      "Dream‑bubbles drifted all around them, each holding a tiny scene inside.",
+      "A cat napping on a cloud. A river dancing in spirals. A kite flying itself.",
+      "Lily’s eyes sparkled. “They’re beautiful…”",
+      "Lady Bug nodded. “Dreams deciding what they want to be.”",
+      "Luna reached toward a wobbly bubble."
+  ]},
+  { title: "The First Pop", text: [
+      "Luna poked the bubble with one gentle tap.",
+      "It burst in a swirl of sparkles.",
+      "Suddenly, Skeeter lifted off the ground.",
+      "“Um,” he said calmly, rising upward, “I appear to be floating.”",
+      "Luna gasped. “Skeeter! You’re a balloon!”"
+  ]},
+  { title: "Balloon Skeeter", text: [
+      "Skeeter drifted upward like a soft balloon, his hair floating gently.",
+      "Lily reached up on her tiptoes. “Don’t go too high…”",
+      "Lady Bug observed the glow around him. “The dream is shaping itself.”",
+      "Luna bounced excitedly. “This is amazing!”",
+      "Another bubble drifted toward her nose."
+  ]},
+  { title: "The Second Pop", text: [
+      "Luna squinted at the glowing bubble.",
+      "Pop.",
+      "The world flipped.",
+      "Suddenly Luna was sprinting across the meadow, chased by a giant flying sandwich.",
+      "“WHY IS IT CHASING ME?!” she yelled, half laughing."
+  ]},
+  { title: "The Flip Begins", text: [
+      "The sandwich flapped its bread slices like wings.",
+      "Skeeter, Lily, and Lady Bug were pulled into the scene instantly.",
+      "Then—flip.",
+      "Skeeter was floating again.",
+      "Then—flip. The sandwich returned."
+  ]},
+  { title: "Dream Loop", text: [
+      "Balloon Skeeter.",
+      "Sandwich Chase.",
+      "Balloon Skeeter.",
+      "Sandwich Chase.",
+      "The dream switched faster and faster."
+  ]},
+  { title: "Luna Loves It", text: [
+      "Luna wasn’t scared at all.",
+      "“Again!” she shouted as the world flipped.",
+      "One moment she was running from the sandwich.",
+      "The next she was watching Skeeter float upward.",
+      "Lily, however, was starting to wobble."
+  ]},
+  { title: "Lily Tries to Steady It", text: [
+      "Lily placed a gentle hand on the flickering air.",
+      "A lavender glow spread outward.",
+      "For a moment, the dream steadied.",
+      "Skeeter hovered calmly.",
+      "Then Luna giggled—and the dream flipped again."
+  ]},
+  { title: "Skeeter Listens", text: [
+      "Skeeter closed his eyes, drifting up and down.",
+      "“One… two… three…” he counted softly.",
+      "“It’s switching in a rhythm.”",
+      "The world flipped again.",
+      "Lady Bug tilted her head. “Not a rhythm. A problem.”"
+  ]},
+  { title: "Lady Bug Understands", text: [
+      "She watched the scenes flip—Skeeter floating, Luna running.",
+      "“Luna,” she asked gently, “what were you thinking about?”",
+      "Flip. Balloon Skeeter.",
+      "Flip. Sandwich Chase.",
+      "Luna blinked. “Um… both?”"
+  ]},
+  { title: "Two Ideas at Once", text: [
+      "Luna explained between flips.",
+      "“I thought it’d be funny if Skeeter floated like a balloon…”",
+      "Flip.",
+      "“And also if a giant sandwich chased me!”",
+      "Lady Bug nodded softly. “Two ideas collided.”"
+  ]},
+  { title: "The Dream Is Overloaded", text: [
+      "“The dream isn’t broken,” Lady Bug said.",
+      "“It’s overwhelmed.”",
+      "Luna’s shoulders drooped. “I… did that?”",
+      "Lily smiled warmly. “Your ideas are just big.”",
+      "Skeeter floated down beside her."
+  ]},
+  { title: "Helping Luna Focus", text: [
+      "“Sometimes dreams need us to slow down,” Lady Bug said.",
+      "Skeeter nodded. “One idea at a time.”",
+      "Lily placed a hand on Luna’s shoulder.",
+      "“We’ll help you,” she said.",
+      "Luna took a deep breath."
+  ]},
+  { title: "One Picture", text: [
+      "Luna closed her eyes.",
+      "She let the sandwich chase fade.",
+      "She let balloon‑Skeeter soften.",
+      "She pictured all of them together, floating calmly.",
+      "“I just want us all here,” she whispered."
+  ]},
+  { title: "The Dream Listens", text: [
+      "The flickering slowed.",
+      "The sandwich drifted away like a cloud.",
+      "Skeeter’s glow softened.",
+      "The meadow brightened in blue and purple light.",
+      "The dream began to settle."
+  ]},
+  { title: "Floating Together", text: [
+      "One by one, they all began to float.",
+      "Skeeter, Lily, Luna, and Lady Bug drifted upward together.",
+      "Dream‑bubbles glowed around them like tiny moons.",
+      "The sky shimmered like velvet.",
+      "“You did it, Luna,” Lily said."
+  ]},
+  { title: "A Gentle Ending", text: [
+      "The dream dimmed softly, like a lantern being covered.",
+      "They drifted back to the glowing grass.",
+      "A single dream‑bubble floated behind them.",
+      "Inside it, a picture of all four friends floating together.",
+      "Luna smiled. “My favorite dream ever.”"
+  ]},
+  { title: "Back in the Room", text: [
+      "The page shimmered and pulled them gently home.",
+      "They landed softly in Skeeter’s bedroom.",
+      "The book closed with a quiet glow.",
+      "Lily exhaled in relief.",
+      "Luna grinned. “Best dream ever.”"
+  ]}
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

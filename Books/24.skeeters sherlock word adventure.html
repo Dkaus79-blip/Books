@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Case of the Missing Teacup</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #b0b5c0 0, #7b808a 35%, #3c4048 70%, #1a1c22 100%);
+    color: #111319;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(245, 246, 250, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #2b3240;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #4a5260;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #2b3240;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #111319;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #dde2ea);
+    color: #1f2530;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* RAIN + FOG + MAGNIFYING GLASS GRAPHICS */
+
+  .rain-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.15) 0,
+      rgba(255,255,255,0.0) 60%
+    );
+    background-size: 2px 40px;
+    animation: rainMove 0.8s linear infinite;
+    opacity: 0.5;
+    z-index: 1;
+  }
+
+  @keyframes rainMove {
+    from { background-position: 0 -40px; }
+    to   { background-position: 0 0; }
+  }
+
+  .fog {
+    position: fixed;
+    inset: -40px;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(220,225,235,0.35) 0, transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(220,225,235,0.3) 0, transparent 55%),
+      radial-gradient(circle at 30% 80%, rgba(220,225,235,0.25) 0, transparent 55%);
+    filter: blur(2px);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .lamp-glow {
+    position: fixed;
+    width: 120px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 0,
+      rgba(255,240,200,0.9) 0,
+      rgba(255,240,200,0.0) 70%);
+    bottom: -40px;
+    left: 10%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .lamp-glow:nth-child(2) {
+    left: auto;
+    right: 12%;
+  }
+
+  .magnify-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .magnify {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 3px solid rgba(230,235,245,0.95);
+    box-shadow: 0 0 10px rgba(230,235,245,0.9);
+    animation: magFloat 18s linear infinite;
+  }
+
+  .magnify::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 4px;
+    background: rgba(230,235,245,0.95);
+    border-radius: 999px;
+    bottom: -6px;
+    right: -4px;
+    transform: rotate(35deg);
+  }
+
+  .magnify.m1 { left: 12%; top: 18%; animation-delay: 0s; }
+  .magnify.m2 { left: 70%; top: 24%; animation-delay: 4s; }
+  .magnify.m3 { left: 40%; top: 60%; animation-delay: 8s; }
+
+  @keyframes magFloat {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+    50%  { transform: translateY(-18px) rotate(10deg); opacity: 0.7; }
+    100% { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="rain-layer"></div>
+<div class="fog"></div>
+<div class="lamp-glow"></div>
+<div class="lamp-glow"></div>
+
+<div class="magnify-layer">
+  <div class="magnify m1"></div>
+  <div class="magnify m2"></div>
+  <div class="magnify m3"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">The Case of the Missing Teacup</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Fog on Baker Street",
+    text: [
+      "The book glowed gray.",
+      "Not silver. Not storm‑gray. Detective‑gray.",
+      "A soft drizzle tapped against the bedroom window as the glow spread across the cover.",
+      "Luna gasped. “RAIN WORLD!”",
+      "Lady Bug shook her head. “No, sweetie. That’s fog.”",
+      "Luna gasped again. “FOG WORLD!”",
+      "Lily squinted. “No… that’s detective gray.”",
+      "Skeeter touched the book.",
+      "The room dissolved into swirling fog."
+    ]
+  },
+  {
+    title: "London, 1890‑ish",
+    text: [
+      "They landed on wet cobblestones.",
+      "Gas lamps flickered gold through the mist. Rain drizzled softly, making tiny rings in puddles.",
+      "Little magnifying glasses drifted through the air like sparkles, catching the lamplight as they floated past.",
+      "Luna immediately grabbed at one. Her hand passed right through it.",
+      "“I FOUND A CLUE!” she shouted.",
+      "Lily folded her arms. “That’s a raindrop.”",
+      "Lady Bug sighed. “Please don’t try to interrogate the weather.”",
+      "Skeeter frowned. “Why is the raindrop wearing a mustache?”",
+      "Luna grinned. “BECAUSE IT’S A SUSPECT.”"
+    ]
+  },
+  {
+    title: "The Hat Incident",
+    text: [
+      "A gust of wind rushed down the street, sending a brown detective hat tumbling past their feet.",
+      "Luna lunged. “EVIDENCE!”",
+      "She slid across the slick cobblestones, snatched the hat, and popped up wearing it sideways.",
+      "A tall man in a long coat stepped out of the fog, his sharp eyes taking everything in at once.",
+      "He blinked. “That,” he said slowly, “is my hat.”",
+      "Luna saluted. “NOT ANYMORE.”",
+      "A shorter man with a mustache appeared beside him, looking tired but kind.",
+      "“Oh dear,” he murmured. “Holmes, I believe the case has become more complicated.”"
+    ]
+  },
+  {
+    title: "Meeting Sherlock Holmes",
+    text: [
+      "The tall man studied them. “Sherlock Holmes,” he said, tapping his chest. “Consulting detective.”",
+      "He gestured to the man beside him. “Dr. John Watson.”",
+      "Watson gave them a small, polite nod. “A pleasure,” he said.",
+      "Skeeter straightened a little. “I’m Skeeter. This is Lady Bug, Lily, and Luna.”",
+      "Luna tipped the hat so low she could barely see. “I am ALSO a consulting detective,” she announced.",
+      "Lily muttered, “You just met the job title.”",
+      "Lady Bug smiled apologetically at Sherlock. “She’s very enthusiastic.”",
+      "Sherlock’s eyes narrowed thoughtfully. “Enthusiasm,” he said, “is occasionally useful.”"
+    ]
+  },
+  {
+    title: "The Missing Teacup",
+    text: [
+      "Sherlock folded his arms behind his back. “We have a problem,” he said.",
+      "Watson sighed. “A very small problem,” he added. “But a problem nonetheless.”",
+      "Sherlock continued. “Mrs. Hudson’s favorite teacup has gone missing.”",
+      "Luna gasped like someone had stolen the moon. “A TEACUP HEIST.”",
+      "Lily blinked. “We came to London… for a teacup?”",
+      "Lady Bug smiled. “Small mysteries still matter,” she said.",
+      "Sherlock nodded once. “Precisely. And I suspect this one is not as simple as it appears.”",
+      "Luna whispered, “Nothing is simple. I have a hat now.”"
+    ]
+  },
+  {
+    title: "Luna’s First Clue",
+    text: [
+      "Sherlock led them down Baker Street, the fog curling around their ankles.",
+      "They hadn’t gone far when Luna stopped suddenly.",
+      "She pointed dramatically at the ground. “I FOUND A CLUE!”",
+      "Everyone looked.",
+      "It was a rock.",
+      "Lily pinched the bridge of her nose. “That’s a rock.”",
+      "Lady Bug said, “Please put the rock down.”",
+      "Skeeter stared. “Why is the rock wearing a mustache?”",
+      "Luna held up the rock proudly. Someone had drawn a tiny mustache on it in black ink.",
+      "“BECAUSE IT’S A SUSPECT,” she declared."
+    ]
+  },
+  {
+    title: "Real Clues, Fake Clues",
+    text: [
+      "While Luna interrogated the mustache rock (“Where were you at tea time?”), Lily noticed something else.",
+      "A faint trail of white grains led away from the front door of 221B Baker Street.",
+      "“Sugar,” Lily said quietly.",
+      "Skeeter crouched beside her. “From the teacup?”",
+      "Lady Bug nodded. “That seems more like a clue.”",
+      "Sherlock’s eyes glinted. “Excellent,” he said. “Follow the sugar.”",
+      "Behind them, Luna held the rock up to her ear. “It’s not talking,” she whispered.",
+      "Watson murmured, “I’m not entirely sure it can.”"
+    ]
+  },
+  {
+    title: "The Sandwich Situation",
+    text: [
+      "The sugar trail led them around the corner, past a bakery that smelled like warm bread and jam.",
+      "Luna stopped again, gasping so loudly that even the fog seemed to jump.",
+      "“I FOUND ANOTHER CLUE!”",
+      "She pointed at a half‑eaten sandwich sitting on a low wall.",
+      "Lily stared. “That’s a sandwich.”",
+      "Lady Bug said, “Please don’t touch the sandwich.”",
+      "Skeeter asked, “Why does the sandwich have a mustache?”",
+      "Sure enough, someone had drawn a tiny mustache on the crust.",
+      "Luna folded her arms. “OBVIOUSLY the suspect is traveling with a snack.”",
+      "Sherlock tilted his head. “Curious,” he murmured. “The mustache motif continues.”"
+    ]
+  },
+  {
+    title: "Footprints and Fog",
+    text: [
+      "Beyond the sandwich, the sugar trail grew fainter, but Lily spotted something else.",
+      "“Footprints,” she said, pointing to a set of small, neat prints in the damp cobblestones.",
+      "They were too small to be Sherlock’s, too light to be Watson’s.",
+      "Skeeter followed the line with his eyes. “They’re heading toward the park.”",
+      "Lady Bug nodded. “Then so are we.”",
+      "Luna marched ahead, holding the mustache rock like a badge.",
+      "“DON’T WORRY,” she called. “I’M ON THE CASE.”",
+      "Watson whispered to Sherlock, “Is she… actually on the case?”",
+      "Sherlock replied, “At the very least, she is near it.”"
+    ]
+  },
+  {
+    title: "The Pigeon Interrogation",
+    text: [
+      "They reached a small park, where the fog hung low over the grass and iron benches.",
+      "A pigeon strutted near a puddle, pecking at something shiny.",
+      "Luna gasped. “SUSPECT.”",
+      "She rushed over and pointed. “I FOUND A CLUE!”",
+      "Lily said, “That’s a pigeon.”",
+      "Lady Bug added, “Please don’t interrogate the bird.”",
+      "Skeeter squinted. “Why does the pigeon have a mustache?”",
+      "Someone had drawn a tiny mustache on the side of the puddle with chalk, right where the pigeon’s reflection appeared.",
+      "Luna nodded firmly. “THE MASTER OF DISGUISE.”",
+      "Sherlock actually smiled. “I must admit,” he said, “whoever is drawing these has a sense of humor.”"
+    ]
+  },
+  {
+    title: "The Broken Handle",
+    text: [
+      "While Luna tried to get the pigeon to confess, Lily walked slowly around the park.",
+      "Near a bench, she spotted something white half‑buried in the grass.",
+      "She knelt and brushed away the damp blades.",
+      "“Skeeter,” she called softly.",
+      "He hurried over. In Lily’s hand was a small, curved piece of porcelain.",
+      "“A handle,” Skeeter said. “From a teacup.”",
+      "Lady Bug joined them. “So the cup was here,” she said.",
+      "Sherlock’s eyes lit up. “Excellent work,” he said. “We are closing in.”",
+      "Luna shouted from across the park, “THE PIGEON LAWYER SAYS IT’S INNOCENT.”"
+    ]
+  },
+  {
+    title: "The Umbrella Trail",
+    text: [
+      "They followed a faint line of sugar and tiny porcelain crumbs out of the park and down another narrow street.",
+      "Rain tapped softly on the cobblestones, making everything shine.",
+      "An umbrella leaned against a doorway, dripping water.",
+      "Luna pointed. “CLUE!”",
+      "Lily looked at it. “That’s just an umbrella.”",
+      "Lady Bug said, “Please don’t steal someone’s umbrella.”",
+      "Skeeter tilted his head. “Why does the umbrella have a mustache?”",
+      "A tiny mustache had been drawn on the wooden handle.",
+      "Sherlock hummed thoughtfully. “Our artist is persistent,” he said. “And fond of facial hair.”"
+    ]
+  },
+  {
+    title: "Luna’s Last “Fake” Clue",
+    text: [
+      "They turned into a quiet alley, where the fog felt thicker and the rain softer.",
+      "Luna stopped so suddenly that Skeeter almost ran into her.",
+      "She pointed at a small shape sitting on a crate.",
+      "“I FOUND A CLUE,” she whispered.",
+      "Lily sighed. “If that’s another rock—”",
+      "Lady Bug said, “Please don’t pick up anything weird.”",
+      "Skeeter asked automatically, “Why does it have a mustache?”",
+      "Luna carefully lifted the object.",
+      "It was a teacup.",
+      "A delicate, white teacup with tiny blue flowers around the rim.",
+      "And on the side, in very small ink, someone had drawn a mustache."
+    ]
+  },
+  {
+    title: "The Realization",
+    text: [
+      "Everyone froze.",
+      "Lily stared. “Wait,” she said slowly. “That’s actually the teacup.”",
+      "Lady Bug blinked. “That’s… the real clue.”",
+      "Skeeter looked from the teacup to Luna. “You actually found it.”",
+      "Luna’s eyes went huge. “I TOLD YOU,” she said, her voice wobbling between outrage and pride.",
+      "Sherlock stepped closer, examining the cup carefully.",
+      "“Mrs. Hudson’s favorite teacup,” he confirmed. “Recovered by… Miss Luna.”",
+      "Watson smiled. “Well done,” he said.",
+      "Luna hugged the teacup gently. “I am a PROFESSIONAL.”"
+    ]
+  },
+  {
+    title: "The Culprit Revealed",
+    text: [
+      "Back at 221B Baker Street, Mrs. Hudson fussed over the teacup, relieved to see it safe.",
+      "“But who took it?” Lily asked.",
+      "A soft scratching sound came from under a small table.",
+      "A gray cat slunk out, batting at a sugar cube and nudging a spoon.",
+      "On its collar, someone had drawn a tiny mustache.",
+      "Skeeter laughed. “The cat did it.”",
+      "Lady Bug smiled. “It just wanted to play.”",
+      "Sherlock nodded. “A harmless thief,” he said. “But a thief nonetheless.”",
+      "Luna crouched down. “YOU,” she said, “ARE A VERY SUSPICIOUS FLUFF.”"
+    ]
+  },
+  {
+    title: "Credit Where It’s Due",
+    text: [
+      "Sherlock turned to the group.",
+      "“You followed the sugar, the footprints, and the broken handle,” he said. “Excellent deduction.”",
+      "He looked at Luna. “And you, Miss Luna, located the final piece of the puzzle.”",
+      "Luna straightened, still wearing his hat. “I KNOW,” she said proudly.",
+      "Lily smiled. “You really did it,” she said.",
+      "Lady Bug nodded. “Even if most of your clues were rocks and sandwiches.”",
+      "Skeeter added, “And pigeons. And umbrellas.”",
+      "Luna shrugged. “Sometimes you have to accuse EVERYTHING,” she said. “Just in case.”"
+    ]
+  },
+  {
+    title: "Back to the Bedroom",
+    text: [
+      "The fog outside the window of 221B thickened, swirling around them like a curtain.",
+      "The book in Skeeter’s hands began to glow gray again, the detective‑gray they had seen before.",
+      "Sherlock tipped his head. “If London ever needs you again,” he said, “I suspect the book will know.”",
+      "Watson smiled. “Do visit,” he added. “Perhaps next time we’ll misplace a saucer.”",
+      "The world blurred.",
+      "They landed back on Skeeter’s bed, the book resting between them.",
+      "Luna was still holding the mustache rock.",
+      "Lady Bug looked at it and sighed. “Please put the rock down.”",
+      "Luna hugged it to her chest. “NEVER. IT KNOWS TOO MUCH.”",
+      "Skeeter laughed, and even Lily smiled.",
+      "Outside, rain tapped softly on the window, like London was still out there, waiting for the next case."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

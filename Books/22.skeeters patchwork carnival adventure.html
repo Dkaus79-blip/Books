@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Patchwork Carnival</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #ffdde0 0, #ff9b9b 35%, #b03030 100%);
+    color: #210b0b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 250, 245, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(120, 10, 10, 0.6);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7b1010;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7b3a3a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #7b1010;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #210b0b;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffe3e3);
+    color: #3b1111;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* CARNIVAL GRAPHICS */
+
+  /* Big top tents */
+  .tent {
+    position: absolute;
+    width: 140px;
+    height: 120px;
+    background: linear-gradient(to bottom, #ffefef 0, #ffb3b3 40%, #ff4b4b 100%);
+    clip-path: polygon(50% 0, 100% 40%, 100% 100%, 0 100%, 0 40%);
+    box-shadow: 0 0 18px rgba(255, 200, 200, 0.8);
+    opacity: 0.8;
+    z-index: 1;
+    animation: tentFloat 16s ease-in-out infinite;
+  }
+
+  .tent::before {
+    content: "";
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 26px solid transparent;
+    border-right: 26px solid transparent;
+    border-bottom: 30px solid #ff4b4b;
+  }
+
+  .tent::after {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 18px;
+    background: #ffd166;
+    border-radius: 999px;
+  }
+
+  .tent1 { left: 6%; bottom: -10px; animation-delay: 0s; }
+  .tent2 { right: 8%; bottom: -18px; animation-delay: 4s; }
+
+  @keyframes tentFloat {
+    0%   { transform: translateY(10px); }
+    50%  { transform: translateY(-8px); }
+    100% { transform: translateY(10px); }
+  }
+
+  /* Ferris wheel */
+  .wheel {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 240, 240, 0.9);
+    right: 50%;
+    top: -40px;
+    transform: translateX(210px);
+    box-shadow: 0 0 18px rgba(255, 230, 230, 0.7);
+    z-index: 0;
+    animation: wheelSpin 40s linear infinite;
+  }
+
+  .wheel spoke {
+    display: none;
+  }
+
+  .wheel-dot {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffd166;
+    box-shadow: 0 0 8px rgba(255, 209, 102, 0.9);
+  }
+
+  .wd1 { top: -8px; left: 50%; transform: translateX(-50%); }
+  .wd2 { top: 50%; right: -8px; transform: translateY(-50%); }
+  .wd3 { bottom: -8px; left: 50%; transform: translateX(-50%); }
+  .wd4 { top: 50%; left: -8px; transform: translateY(-50%); }
+
+  @keyframes wheelSpin {
+    from { transform: translateX(210px) rotate(0deg); }
+    to   { transform: translateX(210px) rotate(360deg); }
+  }
+
+  /* Bunting flags */
+  .bunting {
+    position: absolute;
+    top: 8%;
+    left: -10%;
+    right: -10%;
+    height: 60px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      transparent 18px 20px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .flag-row {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+      linear-gradient(135deg, rgba(255,255,255,0) 0 40%, rgba(255,255,255,0.9) 40% 60%, rgba(255,255,255,0) 60% 100%),
+      linear-gradient(135deg, rgba(255,209,102,0) 0 40%, rgba(255,209,102,0.9) 40% 60%, rgba(255,209,102,0) 60% 100%),
+      linear-gradient(135deg, rgba(255,107,107,0) 0 40%, rgba(255,107,107,0.9) 40% 60%, rgba(255,107,107,0) 60% 100%);
+    background-size: 40px 40px;
+    background-position: 0 0, 14px 20px, 28px 0;
+    opacity: 0.8;
+    animation: flagsWave 18s linear infinite;
+  }
+
+  @keyframes flagsWave {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-80px); }
+  }
+
+  /* Ground glow */
+  .ground-glow {
+    position: fixed;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    height: 160px;
+    background: radial-gradient(circle at 50% 0, rgba(255, 230, 230, 0.9) 0, rgba(255, 230, 230, 0.0) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="tent tent1"></div>
+<div class="tent tent2"></div>
+
+<div class="wheel">
+  <div class="wheel-dot wd1"></div>
+  <div class="wheel-dot wd2"></div>
+  <div class="wheel-dot wd3"></div>
+  <div class="wheel-dot wd4"></div>
+</div>
+
+<div class="bunting">
+  <div class="flag-row"></div>
+</div>
+
+<div class="ground-glow"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">The Patchwork Carnival</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "The Book Glows Again",
+    text: [
+      "The book on Skeeter’s bed gave a soft little shiver, then began to glow in warm reds and golds.",
+      "Luna leaned in so close her nose almost touched the cover. “Ooooh,” she breathed. “Quilt world.”",
+      "Lily rested her fingertips on the edge. “It feels… soft,” she said quietly.",
+      "Skeeter, Lady Bug, and Jane gathered around as the glow brightened, patchwork colors stitching themselves across the surface.",
+      "The book opened on its own, and the room slipped away."
+    ]
+  },
+  {
+    title: "Arrival at the Patchwork Carnival",
+    text: [
+      "They landed on a path made of giant buttons that clicked softly under their feet.",
+      "All around them, a carnival stretched into the distance—tents sewn from patterned fabric, rides made of spinning quilt circles, strings of tiny flags fluttering overhead.",
+      "Patchwork creatures wandered between the games and rides, each one stitched from different colors and shapes.",
+      "Luna spun in a circle. “This is the best idea the book has ever had,” she declared.",
+      "Lily smiled, her eyes tracing the gentle seams. “It’s like someone sewed a whole world together.”"
+    ]
+  },
+  {
+    title: "The Patchwork Fox",
+    text: [
+      "A small fox made of fabric padded toward them, its button eyes bright and hopeful.",
+      "Its body was covered in neat squares and triangles of cloth—except for one empty space on its chest where a patch was clearly missing.",
+      "“Hello,” it said in a soft, slightly crinkly voice. “I’m supposed to be finished, but I’m not.”",
+      "Luna crouched down. “You look pretty finished to me,” she said.",
+      "The fox shook its head. “There’s a piece of my pattern missing. Without it, I don’t feel quite like myself.”",
+      "Lady Bug glanced at the others. “We can help with that,” she said. “Right?”",
+      "Everyone nodded."
+    ]
+  },
+  {
+    title: "The First Thread",
+    text: [
+      "A tiny glimmer of light tugged at the corner of Lily’s vision.",
+      "She turned and saw a single glowing thread trailing away from the fox’s chest, stretching down the button path and into the carnival.",
+      "“I think that’s our clue,” she said, pointing.",
+      "Luna reached out and tried to grab the thread.",
+      "It zipped out of her fingers and darted ahead like it was laughing.",
+      "“Hey!” Luna said, already chasing after it.",
+      "Skeeter grinned. “Guess we’re following the string.”"
+    ]
+  },
+  {
+    title: "Button‑Bounce Path",
+    text: [
+      "The glowing thread led them onto a path of giant buttons that bounced like trampolines when they stepped on them.",
+      "Luna jumped onto the first one and shot up into the air with a delighted shout.",
+      "Jane laughed and followed, her hair flying as she bounced from button to button.",
+      "Lily stepped more carefully, but even her gentle steps made the buttons wobble and squeak.",
+      "Skeeter and Lady Bug bounced along behind them, trying not to fall over.",
+      "At the end of the path, the thread slipped under the flap of a tall striped tent."
+    ]
+  },
+  {
+    title: "The Ribbon Tent",
+    text: [
+      "Inside the tent, long ribbons hung from the ceiling in every color, swaying gently in a breeze that didn’t seem to come from anywhere.",
+      "As they walked through, the ribbons twisted and curled, forming shapes in the air.",
+      "For a moment, the ribbons pulled together into the outline of a small boy with a cape fluttering behind him.",
+      "Lily blinked, and the shape unraveled back into loose strands.",
+      "“Did you see that?” Jane whispered.",
+      "“I saw something,” Skeeter said. “I just don’t know what.”",
+      "The glowing thread slipped out through the back of the tent, and they followed."
+    ]
+  },
+  {
+    title: "The Snack Crumb",
+    text: [
+      "Outside the ribbon tent, the ground changed from buttons to soft quilt squares.",
+      "The glowing thread paused beside a tiny crumb of something that looked like a patchwork‑world snack—crumbly, colorful, and dusted with sugar.",
+      "Luna crouched down. “Ooh, free sample,” she said, reaching for it.",
+      "Lady Bug gently nudged her hand away. “Maybe don’t eat mysterious floor food,” she suggested.",
+      "Skeeter studied the crumb. “Someone ate this,” he said.",
+      "“Someone small,” Lady Bug added.",
+      "Jane looked down the path of quilt squares. “And someone fast,” she said softly.",
+      "The thread tugged forward again, and they kept going."
+    ]
+  },
+  {
+    title: "The Quilt Maze",
+    text: [
+      "The thread led them to a maze made of floating quilt panels, each one a different pattern.",
+      "As they stepped inside, the panels drifted into new positions, opening and closing paths.",
+      "“Okay, this is amazing,” Luna said, immediately touching three different panels just to see what would happen.",
+      "The maze rearranged itself in a dizzying swirl.",
+      "Lily pressed her lips together, trying not to laugh. “Maybe… less touching,” she suggested.",
+      "Working together, they watched how the panels moved and found a rhythm—Lily guiding, Luna testing, the others following.",
+      "At the center of the maze, the glowing thread slipped through a narrow gap and out the other side."
+    ]
+  },
+  {
+    title: "The Stitch‑River Bridge",
+    text: [
+      "They emerged onto the bank of a river made of glowing thread, flowing like liquid light.",
+      "Across it stretched a bridge of giant sewing needles and thick yarn, woven into a sturdy path.",
+      "Luna tapped the yarn with her foot. “If this unravels while we’re on it, I’m going to be very impressed,” she said.",
+      "They crossed carefully, the glowing river shimmering beneath them.",
+      "On the far side, the thread finally stopped—hovering in the air like it was waiting.",
+      "Then, without warning, it snapped into a straight line and shot ahead between two patchwork tents.",
+      "“Come on!” Jane said, and they ran after it."
+    ]
+  },
+  {
+    title: "First Glimpse of the Boy",
+    text: [
+      "They rounded the corner just in time to see a small boy dart between the tents.",
+      "He wore a bright, colorful blanket tied around his shoulders like a cape, the fabric fluttering behind him as he ran.",
+      "In his hand, he clutched a square of fabric that glowed with the same light as the missing patch on the fox’s chest.",
+      "He glanced back over his shoulder, and for a heartbeat they saw his face—soft, sweet, and somehow familiar.",
+      "Jane’s breath caught. “Who… is that?” she whispered.",
+      "Skeeter felt something twist in his chest, like a memory he couldn’t quite reach."
+    ]
+  },
+  {
+    title: "The Chase Begins",
+    text: [
+      "“Wait!” Skeeter called. “We’re not trying to scare you!”",
+      "The boy hesitated for half a second, then giggled softly and ran faster.",
+      "His blanket‑cape flapped behind him like a little patchwork flag.",
+      "Luna took off after him. “Blanket‑cape boy, come back!” she shouted.",
+      "Lily ran too, her steps quieter but just as determined.",
+      "Lady Bug and Jane followed close behind, with Skeeter right on their heels.",
+      "They could hear the boy’s light footsteps just ahead of them, always around the next corner."
+    ]
+  },
+  {
+    title: "Almost Close Enough",
+    text: [
+      "They turned down a narrow path between two tall tents, the fabric walls glowing softly in the carnival light.",
+      "The boy was just ahead, his cape brushing the ground as he ran.",
+      "Luna reached out, fingers stretching toward the edge of the blanket.",
+      "For a moment, she thought she might actually catch it.",
+      "“It’s okay!” Lily called. “We just want to talk!”",
+      "The boy slowed, just a little.",
+      "Then he looked past them at something they couldn’t see yet—and ran again."
+    ]
+  },
+  {
+    title: "Nookie in the Shimmer",
+    text: [
+      "They burst out of the narrow path into a small open space between the tents.",
+      "There, standing in a soft pink shimmer of light, was a girl.",
+      "She didn’t move. She didn’t speak. She just watched the boy with a gentle, protective expression.",
+      "The light around her was the same warm pink that sometimes slipped out of the book when no one was touching it.",
+      "Lily felt her heart squeeze. She didn’t know this girl—but somehow, she felt like she did.",
+      "Jane whispered, “Do you… feel that?”",
+      "Lady Bug nodded slowly. “Yeah,” she said. “I do.”"
+    ]
+  },
+  {
+    title: "Gizmo Runs to Her",
+    text: [
+      "The boy ran straight to the girl in the shimmer, his blanket‑cape fluttering behind him.",
+      "He wasn’t scared. He wasn’t hiding. He moved with the easy trust of someone running toward home.",
+      "He reached her side, and she rested a hand on his shoulder, her fingers gentle and sure.",
+      "Up close, his face was even clearer—soft, sweet, and full of quiet joy.",
+      "Skeeter’s chest ached with a feeling he couldn’t name.",
+      "The girl’s eyes lifted, just for a moment, as if she could see all of them.",
+      "Then the shimmer around them brightened."
+    ]
+  },
+  {
+    title: "The Fold in the World",
+    text: [
+      "The air didn’t crack or explode. It didn’t roar or flash.",
+      "Instead, the world around the girl and the boy folded softly, like a page being turned in a book.",
+      "The shimmer curved inward, the tents bending with it, colors blending into a gentle swirl.",
+      "Luna took a step forward. “Wait—”",
+      "But the fold finished closing, and the space where they had been was suddenly just empty carnival air.",
+      "Something small and glowing drifted down to the ground where they had stood.",
+      "The missing patch."
+    ]
+  },
+  {
+    title: "What They Saw",
+    text: [
+      "No one spoke for a long moment.",
+      "Skeeter stared at the empty space. “That boy…” he said quietly. “He felt… familiar.”",
+      "Lady Bug nodded. “And the girl,” she added. “I don’t know why, but it felt like we were supposed to see her.”",
+      "Lily knelt and picked up the glowing patch. It was warm in her hands.",
+      "“We’ll see them again,” she said softly.",
+      "Luna crossed her arms, trying to look determined instead of shaken. “Next time,” she said, “I’m catching blanket‑cape boy.”",
+      "Jane smiled a little. “I think he wanted us to find this,” she said, looking at the patch."
+    ]
+  },
+  {
+    title: "Fixing the Patchwork Fox",
+    text: [
+      "They returned to the patchwork fox, who had been waiting near the button path, its button eyes hopeful.",
+      "Lily held out the glowing patch. “We think this belongs to you,” she said.",
+      "The fox gasped—a soft, crinkly sound—and the patch floated up from Lily’s hands, settling gently into the empty space on its chest.",
+      "Stitches of light sewed it into place, and the fox glowed from nose to tail.",
+      "“I feel whole again,” it said, its voice brighter. “Thank you.”",
+      "Around them, the carnival lights brightened, and the rides spun a little faster, like the whole world was celebrating."
+    ]
+  },
+  {
+    title: "The Carnival Celebrates",
+    text: [
+      "Patchwork creatures cheered as they passed, waving tiny stitched paws and wings.",
+      "The button path bounced a little higher, the quilt panels shimmered with new colors, and the ribbon tent swayed in a happy rhythm.",
+      "Luna bounced along with it all, but every so often she glanced back at the place where the world had folded.",
+      "Skeeter and Lady Bug walked side by side, quiet but not sad—just thoughtful.",
+      "Jane traced the memory of the boy’s face in her mind, trying to hold onto every detail.",
+      "Lily held the feeling of the pink shimmer close, like a secret she knew would matter later."
+    ]
+  },
+  {
+    title: "The Hint",
+    text: [
+      "When they finally reached the edge of the carnival, the book’s glow began to gather around their feet.",
+      "A soft pink shimmer—just like the light around the girl—floated past them, curling through the air like a gentle ribbon.",
+      "Luna reached for it, but it slipped through her fingers and vanished.",
+      "“The book isn’t done with them,” Lily said quietly.",
+      "Skeeter nodded. “Then neither are we.”",
+      "The patchwork fox waved goodbye as the world began to fade.",
+      "The book closed with a soft thump back in Skeeter’s room, its cover warm under their hands.",
+      "They all knew the same thing, even if no one said it out loud:",
+      "This wasn’t the end. It was the beginning of finding them again."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

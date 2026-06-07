@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Luck Fountain Adventure</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #e4ffe6 0, #b9f2c2 50%, #7fd48f 100%);
+    color: #12351c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255,255,255,0.9);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #1f6a35;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #2f8a4a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #1f6a35;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #c9ffd5, #8fe8a7);
+    color: #124022;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* St. Patrick's graphics */
+  .clover, .spark, .rainbow {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  .clover {
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle at 30% 30%, #e6ffe9 0, #5fd47a 50%, #2f8a4a 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(47,138,74,0.6);
+    clip-path: path("M10 0 C4 0 0 4 0 10 C0 16 4 20 10 20 C16 20 20 16 20 10 C20 4 16 0 10 0 Z");
+    animation: cloverFall 8s linear infinite;
+  }
+  .clover.c1 { top: -10px; left: 20%; animation-delay: 0s; }
+  .clover.c2 { top: -10px; left: 55%; animation-delay: 2s; }
+  .clover.c3 { top: -10px; left: 80%; animation-delay: 4s; }
+
+  .spark {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff9d6 0, #ffd95a 60%, transparent 100%);
+    bottom: 12px;
+    right: 24px;
+    box-shadow: 0 0 14px rgba(255,217,90,0.9);
+    animation: sparkPulse 2.4s ease-in-out infinite;
+  }
+
+  .rainbow {
+    width: 120px;
+    height: 60px;
+    bottom: 6px;
+    left: 18px;
+    background:
+      conic-gradient(from 180deg,
+        #ff4b4b, #ffa54b, #fff94b, #4bff6a, #4bb8ff, #b44bff, #ff4b4b);
+    border-radius: 120px 120px 0 0;
+    opacity: 0.6;
+  }
+
+  @keyframes cloverFall {
+    from { transform: translateY(0) rotate(0deg); opacity: 1; }
+    to { transform: translateY(260px) rotate(90deg); opacity: 0; }
+  }
+
+  @keyframes sparkPulse {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0.6; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="book">
+  <div class="clover c1"></div>
+  <div class="clover c2"></div>
+  <div class="clover c3"></div>
+  <div class="rainbow"></div>
+  <div class="spark"></div>
+
+  <div class="header">
+    <div class="title">Skeeter’s Luck Fountain Adventure</div>
+    <div class="indicator" id="indicator">Page 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "The Green Book",
+    text: [
+      "A bright green book appeared on Skeeter’s windowsill, edged in gold.",
+      "Tiny clovers shimmered across its cover, glowing softly.",
+      "On the first page, shining words read: The Luck Fountain has gone dry.",
+      "Skeeter felt a familiar flutter in his chest. Another world needed him."
+    ]
+  },
+  {
+    title: "Lily and the Charm",
+    text: [
+      "Lily hurried into his room, her Spring Charm glowing a soft green.",
+      "“Did you see it?” she asked, pointing at the book.",
+      "Skeeter nodded. “Looks like we’re needed again.”",
+      "They opened the book together as clovers and light swirled around them."
+    ]
+  },
+  {
+    title: "Clover Glen",
+    text: [
+      "They landed in a valley carpeted with clover and soft moss.",
+      "Golden coins glimmered in the grass like tiny suns.",
+      "Leprechaun houses dotted the hillsides, their chimneys puffing green-tinted smoke.",
+      "But the air felt heavy, and worried voices echoed all around."
+    ]
+  },
+  {
+    title: "The Dry Fountain",
+    text: [
+      "At the center of Clover Glen stood a stone fountain shaped like a clover.",
+      "Its basin was cracked and dry, not a single drop of water inside.",
+      "“That must be the Luck Fountain,” Lily whispered.",
+      "Skeeter frowned. “If it’s dry, maybe that’s why everyone looks so worried.”"
+    ]
+  },
+  {
+    title: "Blaming Each Other",
+    text: [
+      "Leprechauns argued in a circle around the fountain.",
+      "“You took too much luck!” one shouted.",
+      "“No, you did! You wished for extra gold!” another snapped.",
+      "Skeeter and Lily exchanged a glance. This wasn’t just bad luck—it was hurt feelings."
+    ]
+  },
+  {
+    title: "Meeting Finn",
+    text: [
+      "A small leprechaun with a crooked hat tugged at Lily’s sleeve.",
+      "“My name’s Finn,” he said quietly. “I don’t like all the shouting.”",
+      "He looked at the dry fountain with sad eyes.",
+      "“The water stopped after everyone started wishing only for themselves.”"
+    ]
+  },
+  {
+    title: "A Clue in the Coins",
+    text: [
+      "Skeeter knelt beside the fountain, studying the scattered coins.",
+      "Some were bright and shiny, but others looked dull and gray.",
+      "Lily picked up a gray coin. “These feel… empty,” she said.",
+      "Finn nodded. “Those are selfish wishes. They don’t share any luck at all.”"
+    ]
+  },
+  {
+    title: "The Path of Faded Clovers",
+    text: [
+      "They followed a trail of pale, wilted clovers away from the fountain.",
+      "The farther they walked, the quieter Clover Glen became.",
+      "Lily slipped once on the damp ground, and Skeeter caught her hand.",
+      "They both blushed, but neither let go right away."
+    ]
+  },
+  {
+    title: "The Hill of Echoes",
+    text: [
+      "At the top of a small hill, the wind carried faint whispers.",
+      "They heard wishes echoing in the air: “More gold… just for me.” “Luck only for my house.”",
+      "Lily shivered. “All these wishes forgot about everyone else.”",
+      "Skeeter nodded. “No wonder the fountain gave up.”"
+    ]
+  },
+  {
+    title: "The Hidden Spring",
+    text: [
+      "Finn led them to a rocky hollow behind the hill.",
+      "A tiny spring trickled there, glowing faint green.",
+      "“That’s where the fountain’s water comes from,” Finn said.",
+      "But stones blocked the flow, each one carved with a selfish wish."
+    ]
+  },
+  {
+    title: "Clearing the Stones",
+    text: [
+      "Skeeter picked up a stone that read: Only my luck matters.",
+      "It felt heavy in his hands, as if it didn’t want to move.",
+      "Lily placed her hand over his. “We’ll move it together,” she said.",
+      "With Finn’s help, they rolled the stone aside, and the spring brightened."
+    ]
+  },
+  {
+    title: "Sharing the Luck",
+    text: [
+      "They cleared more stones, each one holding a selfish wish.",
+      "As they worked, Lily spoke softly to the spring.",
+      "“We’ll help them remember how to share,” she promised.",
+      "The water glowed brighter, as if it believed her."
+    ]
+  },
+  {
+    title: "The Fountain Flows Again",
+    text: [
+      "Back at Clover Glen, the Luck Fountain trembled.",
+      "A thin stream of glowing water spilled into the basin, then another.",
+      "Soon, the fountain was full, sending sparkles of green light into the air.",
+      "Leprechauns gasped as the heaviness in their hearts began to lift."
+    ]
+  },
+  {
+    title: "A New Kind of Wish",
+    text: [
+      "Finn climbed onto the fountain’s edge.",
+      "“Maybe we should wish for good things for each other,” he said.",
+      "One leprechaun tossed in a coin. “I wish Finn always has friends to laugh with.”",
+      "Another added, “I wish our luck helps the whole glen, not just me.”"
+    ]
+  },
+  {
+    title: "Lucky to Have Each Other",
+    text: [
+      "Lily and Skeeter each held a small coin the glen had given them.",
+      "“What are you going to wish for?” Lily asked.",
+      "Skeeter smiled shyly. “That we keep going on adventures together.”",
+      "Lily’s cheeks warmed. “That’s my wish too.” They tossed their coins in at the same time."
+    ]
+  },
+  {
+    title: "Home Again",
+    text: [
+      "Clovers and green light swirled around them, and Clover Glen faded away.",
+      "Skeeter found himself back in his room, the green book resting on his lap.",
+      "Lily’s charm glowed softly beside his own.",
+      "He knew now that luck wasn’t just coins or fountains—it was having someone you were glad to stand beside."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
