@@ -20,8 +20,8 @@ jobs:
         run: |
           shopt -s nullglob
 
-          # SAFE FILE COLLECTION (handles anything)
-          mapfile -t files < <(find Books -maxdepth 1 -type f -iregex '.*\.html' | sort -f)
+          # SAFE FILE COLLECTION (handles anything + mixed-case extensions)
+          mapfile -t files < <(find Books -maxdepth 1 -type f -iregex '.*\.[Hh][Tt][Mm][Ll]' | sort -f)
 
           if [ ${#files[@]} -eq 0 ]; then
             echo "No HTML files found in Books/"
@@ -88,7 +88,6 @@ jobs:
             next=$((i+1))
 
             if [ -f "Books/page${next}.html" ]; then
-              # Safe insertion using temporary file
               tmpfile=$(mktemp)
               awk -v nextpage="page${next}.html" '
                 /<\/body>/ {
