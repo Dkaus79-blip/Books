@@ -17,23 +17,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate index.html
+      - name: Generate button-style index.html
         run: |
           echo "<!DOCTYPE html>" > index.html
-          echo "<html>" >> index.html
-          echo "<head><meta charset='UTF-8'><title>My Books</title></head>" >> index.html
+          echo "<html lang='en'>" >> index.html
+          echo "<head>" >> index.html
+          echo "<meta charset='UTF-8'>" >> index.html
+          echo "<title>Skeeter Series Library</title>" >> index.html
+          echo "<style>" >> index.html
+          echo "body { font-family: Arial, sans-serif; background: #f2f6ff; text-align: center; padding: 20px; }" >> index.html
+          echo "h1 { color: #003366; margin-bottom: 30px; }" >> index.html
+          echo ".button-container { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 400px; margin: 0 auto; }" >> index.html
+          echo "a.book-button { display: block; width: 100%; padding: 14px; background: #007bff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; transition: background 0.2s; }" >> index.html
+          echo "a.book-button:hover { background: #0056b3; }" >> index.html
+          echo "</style>" >> index.html
+          echo "</head>" >> index.html
           echo "<body>" >> index.html
-          echo "<h1>My Books</h1>" >> index.html
-          echo "<ul>" >> index.html
+          echo "<h1>Skeeter Series Library</h1>" >> index.html
+          echo "<div class='button-container'>" >> index.html
 
           for file in *.html; do
             if [ "$file" != "index.html" ]; then
               title=$(basename "$file" .html)
-              echo "<li><a href=\"$file\">$title</a></li>" >> index.html
+              clean_title=$(echo "$title" | sed 's/_/ /g')
+              echo "<a class='book-button' href='$file'>$clean_title</a>" >> index.html
             fi
           done
 
-          echo "</ul>" >> index.html
+          echo "</div>" >> index.html
           echo "</body></html>" >> index.html
 
       - name: Commit updated index
@@ -41,5 +52,5 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add index.html
-          git commit -m "Auto-update index" || echo "No changes to commit"
+          git commit -m "Auto-update button homepage" || echo "No changes to commit"
           git push
