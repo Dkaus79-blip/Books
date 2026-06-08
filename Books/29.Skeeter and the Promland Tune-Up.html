@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter and the Promland Tune-Up</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #ffe9f7 0, #f4c7f0 35%, #9b6fb8 100%);
+    color: #120f24;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 255, 255, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(120, 60, 140, 0.6);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #3a2a7a;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #5b4aa0;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #3a2a7a;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #120f24;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #fbe9ff);
+    color: #2a214f;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* NEW PROMLAND GRAPHICS – similar vibe, different shapes/colors */
+
+  /* HEART LANTERNS */
+  .heart-lantern {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle at 30% 20%, #fffdf9 0, #ffd3ea 40%, #ff8fbf 100%);
+    box-shadow: 0 0 18px rgba(255, 190, 220, 0.9);
+    transform-origin: top center;
+    animation: heartSwing 10s ease-in-out infinite alternate;
+    opacity: 0.9;
+    z-index: 1;
+    clip-path: path("M40 15 C30 0 5 0 5 22 C5 40 25 55 40 70 C55 55 75 40 75 22 C75 0 50 0 40 15 Z");
+  }
+
+  .heart-lantern::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: rgba(255,255,255,0.7);
+    transform: translateX(-50%);
+  }
+
+  .heart1 { top: -10px; left: 12%; animation-delay: 0s; }
+  .heart2 { top: -25px; left: 38%; animation-delay: 3s; }
+  .heart3 { top: -18px; left: 62%; animation-delay: 1.5s; }
+  .heart4 { top: -30px; left: 82%; animation-delay: 5s; }
+
+  @keyframes heartSwing {
+    0%   { transform: rotate(-3deg); }
+    50%  { transform: rotate(4deg); }
+    100% { transform: rotate(-2deg); }
+  }
+
+  /* FLOATING ORBS */
+  .orb {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fffdf0 0, rgba(255,255,255,0));
+    box-shadow: 0 0 12px rgba(255, 245, 230, 0.9);
+    animation: orbDrift 20s linear infinite;
+    opacity: 0.9;
+    z-index: 2;
+  }
+
+  .orb1 { left: 18%; animation-delay: 0s; }
+  .orb2 { left: 33%; animation-delay: 4s; }
+  .orb3 { left: 52%; animation-delay: 8s; }
+  .orb4 { left: 69%; animation-delay: 2s; }
+  .orb5 { left: 86%; animation-delay: 10s; }
+
+  @keyframes orbDrift {
+    0%   { top: 110%; transform: translateX(0); opacity: 0.1; }
+    30%  { opacity: 1; }
+    50%  { transform: translateX(20px); }
+    100% { top: -10%; transform: translateX(-12px); opacity: 0.2; }
+  }
+
+  /* CURVED LIGHT STREAMS */
+  .stream {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.35) 0, rgba(255,255,255,0) 70%);
+    opacity: 0.6;
+    z-index: 0;
+    animation: streamWave 26s linear infinite;
+  }
+
+  .stream1 { top: 18%; left: -12%; animation-delay: 0s; }
+  .stream2 { top: 58%; right: -18%; animation-delay: 7s; }
+  .stream3 { top: 8%; right: 2%; animation-delay: 13s; }
+
+  @keyframes streamWave {
+    0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.2; }
+    30%  { opacity: 0.6; }
+    50%  { transform: translateX(24px) translateY(-12px) scale(1.05); }
+    100% { transform: translateX(-14px) translateY(12px) scale(0.95); opacity: 0.1; }
+  }
+
+  /* GROUND GLOW – slightly different color */
+  .ground-glow {
+    position: fixed;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    height: 160px;
+    background: radial-gradient(circle at 50% 0, rgba(255, 225, 250, 0.95) 0, rgba(255, 225, 250, 0.0) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="heart-lantern heart1"></div>
+<div class="heart-lantern heart2"></div>
+<div class="heart-lantern heart3"></div>
+<div class="heart-lantern heart4"></div>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div class="orb orb4"></div>
+<div class="orb orb5"></div>
+
+<div class="stream stream1"></div>
+<div class="stream stream2"></div>
+<div class="stream stream3"></div>
+
+<div class="ground-glow"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter and the Promland Tune-Up</div>
+    <div class="indicator" id="indicator">Page 1 of 25</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "A Little Extra Giggle",
+    text: [
+      "Back in Skeeter’s bedroom, the world felt quiet again.",
+      "The Garden of Echo Flowers was gone, but Lady Bug’s smile still had a tiny wobble.",
+      "She giggled at nothing in particular, then pressed her lips together.",
+      "“I’m okay,” she said. “Just… a little giggly today.”",
+      "Luna grinned. “GOOD. I APPROVE.”",
+      "Skeeter tilted his head. “It still feels a little Luna-ish,” he said softly."
+    ]
+  },
+  {
+    title: "The Book Listens",
+    text: [
+      "The magic book rested at the foot of the bed, closed but not asleep.",
+      "As they talked, a soft pinkish glow began to shine from its edges.",
+      "Lady Bug noticed it first. “Skeeter,” she whispered, nodding toward the book.",
+      "The glow grew warmer, like lantern light behind a curtain."
+    ]
+  },
+  {
+    title: "Lantern Light Again",
+    text: [
+      "The cover of the book opened just a crack.",
+      "A gentle breeze brushed past their faces, smelling like night air and something sweet.",
+      "Skeeter reached out, and the glow wrapped around his fingers like a ribbon.",
+      "“Promland,” Lady Bug breathed, her voice calm and soft.",
+      "The room faded, and the light pulled them forward, warm and glowing."
+    ]
+  },
+  {
+    title: "Back to Promland",
+    text: [
+      "They landed on soft grass under a sky the color of rose and twilight.",
+      "Lanterns hung from invisible strings above them, swaying gently in the evening air.",
+      "Some lanterns were round and warm, and a few were shaped like tiny red dogs.",
+      "Music drifted through the air, a slow, gentle song that made the whole world feel like a dance waiting to happen.",
+      "Luna spun in a circle. “I LIKE THIS PLACE.”"
+    ]
+  },
+  {
+    title: "Burger Flowers and Banana Lights",
+    text: [
+      "Skeeter looked down and saw burger-shaped flowers blooming around the clearing.",
+      "Each one had a little stitched line across the side, like a name that had once been written there.",
+      "Above them, strings of tiny banana decorations swayed between lanterns, each with a stitched smile.",
+      "Lady Bug smiled. “Burger flowers and banana lights,” she said. “We really are back.”"
+    ]
+  },
+  {
+    title: "A Gentle Host Returns",
+    text: [
+      "From the edge of the clearing, where the shadows were soft and kind, a familiar woman stepped forward.",
+      "She wore a simple dress, her hair pinned back with a small lantern-shaped clip.",
+      "“Welcome back,” she said, her voice warm. “Promland is always glad to see you.”",
+      "Skeeter nodded. “We… might need a little help,” he admitted, glancing at Lady Bug."
+    ]
+  },
+  {
+    title: "Jane in Lantern Light",
+    text: [
+      "A soft rustle came from the other side of the clearing.",
+      "Jane stepped out from behind a curtain of lantern light, her eyes wide with wonder.",
+      "She waved. “You made it back,” she said, smiling.",
+      "Luna waved both arms. “HI JANE. PROMLAND IS STILL PRETTY.”",
+      "Jane laughed. “It really is.”"
+    ]
+  },
+  {
+    title: "Noticing Lady Bug",
+    text: [
+      "Jane’s smile softened as she looked at Lady Bug.",
+      "Lady Bug stood very still, hands folded, but her eyes had a tiny sparkle of extra mischief.",
+      "She giggled once, then looked surprised at herself.",
+      "“I’m fine,” she said quickly. “Just… extra giggles.”",
+      "Jane tilted her head. “Maybe Promland can help with that,” she said gently."
+    ]
+  },
+  {
+    title: "Nookie Arrives",
+    text: [
+      "A swirl of soft sparkles gathered near the burger flowers.",
+      "Nookie appeared in the middle of them, her eyes bright and curious.",
+      "“I felt a wiggly feeling,” she said. “So I came to see what it was.”",
+      "Luna pointed at Lady Bug. “HER. SHE HAS A WIGGLE.”",
+      "Lady Bug blinked. “That’s… not wrong,” she admitted."
+    ]
+  },
+  {
+    title: "Gizmo Rolls In",
+    text: [
+      "From the far side of the clearing, a gentle humming sound grew louder.",
+      "Gizmo rolled into view, his lights glowing soft pink and gold.",
+      "He stopped beside Lady Bug and tilted slightly, as if listening.",
+      "A tiny chime sounded from inside him.",
+      "“He says something’s sparkling around you,” Nookie translated."
+    ]
+  },
+  {
+    title: "The Little Giggle Sleuth",
+    text: [
+      "Nookie squinted at the air around Lady Bug.",
+      "A faint shimmer hovered near her shoulder, like a tiny firefly made of giggles.",
+      "“Ohhh,” Nookie said softly. “You have a Little Giggle Sleuth spark stuck to you.”",
+      "Lady Bug’s eyes widened. “I knew something was off,” she whispered.",
+      "Luna nodded. “YES. YOU WERE A LITTLE ME.”"
+    ]
+  },
+  {
+    title: "Harmless but Tangled",
+    text: [
+      "Jane stepped closer, her dress brushing the soft grass.",
+      "“Is it bad?” Skeeter asked quietly.",
+      "Nookie shook her head. “No. Just tangled. It makes her giggles go in the wrong direction sometimes.”",
+      "Gizmo chimed again, a soft, reassuring sound.",
+      "Lady Bug let out a slow breath. “So it can be untangled?”"
+    ]
+  },
+  {
+    title: "Promland Can Help",
+    text: [
+      "The woman with the lantern-shaped clip smiled.",
+      "“Promland is very good at gentle fixes,” she said.",
+      "She nodded toward the lanterns above them.",
+      "“We can give your Little Giggle Sleuth a tune-up. Nothing scary. Just soft magic.”",
+      "Lady Bug nodded. “Okay,” she said. “I’d like that.”"
+    ]
+  },
+  {
+    title: "Lanterns Drift Lower",
+    text: [
+      "The music in the clearing shifted, becoming even softer.",
+      "Lanterns drifted lower, their light turning a little warmer, a little pinker.",
+      "The burger flowers and banana garlands glowed gently at the edge of the clearing.",
+      "Nookie clapped her hands once. “Lantern tune-up time,” she said."
+    ]
+  },
+  {
+    title: "A Circle of Light",
+    text: [
+      "Nookie traced a slow circle in the air around Lady Bug.",
+      "Light followed her finger, forming a soft ring on the grass.",
+      "“Just stand here,” Nookie said. “Promland will do the rest.”",
+      "Lady Bug stepped into the circle, her face calm and steady.",
+      "Luna whispered, “IF YOU START FLOATING, I’M TAKING NOTES.”"
+    ]
+  },
+  {
+    title: "Gizmo’s Gentle Song",
+    text: [
+      "Gizmo rolled a little closer and began to hum.",
+      "The sound was low and warm, like a lullaby made of lantern light.",
+      "The lanterns above them echoed the tune, glowing brighter with each note.",
+      "Jane smiled. “He’s very good at this,” she said.",
+      "Skeeter nodded. “He really is.”"
+    ]
+  },
+  {
+    title: "The Spark Floats Free",
+    text: [
+      "Lady Bug felt a tiny tickle near her shoulder.",
+      "She giggled once, just a little, and the shimmer near her brightened.",
+      "The Little Giggle Sleuth spark wiggled, then gently floated away from her.",
+      "It hovered in the air like a tiny, laughing firefly.",
+      "Nookie cupped her hands around it. “There you are,” she said softly."
+    ]
+  },
+  {
+    title: "A New Place for the Spark",
+    text: [
+      "Nookie carried the tiny spark toward a nearby lantern.",
+      "The lantern opened just a bit, like a flower.",
+      "The Little Giggle Sleuth spark slipped inside and settled there, glowing softly.",
+      "The lantern chimed once, happy and calm.",
+      "“There,” Nookie said. “Now it can giggle in the right place.”"
+    ]
+  },
+  {
+    title: "Lady Bug Feels Steady",
+    text: [
+      "Lady Bug stepped out of the circle of light.",
+      "She took a slow breath in, then let it out.",
+      "Her smile felt like her own again—calm, steady, and gentle.",
+      "“I feel… normal,” she said. “In a good way.”",
+      "Luna nodded. “YOU STILL HAVE PERMISSION TO BE SILLY,” she added."
+    ]
+  },
+  {
+    title: "Promland’s Attunement",
+    text: [
+      "Nookie looked at Lady Bug thoughtfully.",
+      "“Promland likes you,” she said. “You’re attuned to the lantern magic now.”",
+      "Gizmo chimed in agreement, his lights flickering softly.",
+      "“That means,” Nookie continued, “this world will always feel extra comfortable to you.”",
+      "Lady Bug smiled. “I like that,” she said."
+    ]
+  },
+  {
+    title: "Two Worlds to Help",
+    text: [
+      "Jane stepped closer, her eyes warm.",
+      "“You can still visit the bedroom world,” she said. “You’re part of both.”",
+      "Skeeter nodded. “We still need you,” he said.",
+      "Lady Bug’s smile grew. “I’ll come whenever you need me,” she promised.",
+      "“I’ll just… rest here more often.”"
+    ]
+  },
+  {
+    title: "A Small Promland Dance",
+    text: [
+      "The music in the clearing brightened just a little.",
+      "Jane reached for Lady Bug’s hand.",
+      "Skeeter stepped closer, and Luna bounced into the circle with a grin.",
+      "Nookie and Gizmo watched, their lights glowing softly.",
+      "They all moved together in a small, gentle dance on the grass."
+    ]
+  },
+  {
+    title: "Lanterns Above",
+    text: [
+      "The heart-shaped lanterns above them glowed a little brighter.",
+      "The burger flowers and banana decorations shimmered at the edge of the clearing.",
+      "The lantern that held the Little Giggle Sleuth spark flickered happily.",
+      "Lady Bug glanced up at it and smiled.",
+      "“Thank you,” she whispered."
+    ]
+  },
+  {
+    title: "Back to the Bedroom",
+    text: [
+      "The pinkish light around them began to soften.",
+      "The woman with the lantern-shaped clip stepped forward again.",
+      "“Thank you for visiting,” she said. “Promland will keep an eye on your giggles.”",
+      "The air shimmered, and the clearing faded into soft color.",
+      "They landed back on Skeeter’s bed."
+    ]
+  },
+  {
+    title: "A Calmer Smile",
+    text: [
+      "The book rested on the blanket, its cover cool and still.",
+      "Luna flopped onto her back. “PROMLAND TUNE-UPS ARE FUN,” she declared.",
+      "Skeeter looked at Lady Bug.",
+      "Her smile was calm and steady, with just the right amount of giggle.",
+      "“Feeling better?” he asked.",
+      "Lady Bug nodded. “Much,” she said. “Promland magic is… nice.”"
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
