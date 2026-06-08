@@ -53,9 +53,14 @@ jobs:
             filename=$1
             echo "</div>" >> "$filename"
 
+            # FIXED BACK BUTTON LOGIC
             if [ $page -gt 1 ]; then
               prev=$((page-1))
-              echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> "$filename"
+              if [ $prev -eq 1 ]; then
+                echo "<a class='book-button nav-button' href='index.html'>← Back Page</a>" >> "$filename"
+              else
+                echo "<a class='book-button nav-button' href='page${prev}.html'>← Back Page</a>" >> "$filename"
+              fi
             fi
 
             echo "</body></html>" >> "$filename"
