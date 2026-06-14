@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Whimsical Poe Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #1a1d2b 0, #0d0f18 40%, #05060a 80%);
+    color: #0c0c12;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(250, 248, 245, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.7);
+    border: 2px solid rgba(255,255,255,0.9);
+    position: relative;
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1f2333;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #4a4f60;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #1f2333;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #0c0c12;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #dfe2ea);
+    color: #1f2530;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* WHIMSICAL POE EFFECTS */
+
+  .ink-haze {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(40,40,70,0.4), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .floating-line {
+    position: fixed;
+    left: -200px;
+    top: calc(20% + var(--offset));
+    font-size: 1rem;
+    color: rgba(220,220,255,0.4);
+    white-space: nowrap;
+    animation: drift 18s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes drift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(140vw); }
+  }
+
+  .quill {
+    position: fixed;
+    bottom: 40px;
+    right: 8%;
+    width: 120px;
+    height: 120px;
+    background:
+      radial-gradient(circle at 40% 40%, #fefefe, #dcdce8);
+    clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
+    animation: quillFloat 6s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes quillFloat {
+    0%   { transform: translateY(0) rotate(-4deg); }
+    50%  { transform: translateY(-12px) rotate(4deg); }
+    100% { transform: translateY(0) rotate(-4deg); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="ink-haze"></div>
+
+<div class="floating-line" style="--offset: 0px;">whispers of forgotten stories…</div>
+<div class="floating-line" style="--offset: 60px;">ink drifts like quiet dreams…</div>
+<div class="floating-line" style="--offset: 120px;">sentences wander when unwatched…</div>
+
+<div class="quill"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter’s Whimsical Poe Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Ink‑Blue Glow",
+    text: [
+      "The book glowed a deep, inky blue.",
+      "Not night blue. Not ocean blue. Story blue.",
+      "Luna gasped. “POET WORLD!”",
+      "Lily tilted her head. “No… that’s quill ink.”",
+      "Skeeter touched the cover.",
+      "The room tilted sideways.",
+      "The air smelled like old paper and candle smoke.",
+      "And the floor turned into a creaky wooden stage."
+    ]
+  },
+  {
+    title: "The Stage That Sighs",
+    text: [
+      "They landed on a dimly lit stage.",
+      "Curtains rustled even though there was no wind.",
+      "A giant quill pen stood upright in the center.",
+      "The stage itself groaned. “Ow. Please land more gently.”",
+      "Lady Bug blinked. “The floor just talked.”",
+      "Luna grinned. “I LOVE THIS WORLD ALREADY.”",
+      "Skeeter whispered, “Hi… sorry?”",
+      "The stage replied, “Apology accepted. Barely.”"
+    ]
+  },
+  {
+    title: "The Quill’s Complaint",
+    text: [
+      "The quill pen wiggled like it had a spine.",
+      "“Finally!” it said. “Someone to fix the story.”",
+      "Lily stepped closer. “What’s wrong with it?”",
+      "The quill groaned. “Everything. The ending escaped.”",
+      "Skeeter blinked. “The ending… what?”",
+      "“Ran away,” the quill said. “Very rude.”",
+      "Luna gasped. “CAN ENDINGS DO THAT?”",
+      "The quill replied, “Apparently.”"
+    ]
+  },
+  {
+    title: "The Missing Ending",
+    text: [
+      "A scroll floated down from above, glowing faintly.",
+      "It unrolled itself midair.",
+      "The last page was blank.",
+      "Lily frowned. “It really is gone.”",
+      "Lady Bug asked, “Where did it go?”",
+      "The quill pointed dramatically. “Into the Hall of Lost Lines.”",
+      "Luna clapped. “THAT SOUNDS AMAZING.”",
+      "The quill muttered, “It’s not.”"
+    ]
+  },
+  {
+    title: "The Hall of Lost Lines",
+    text: [
+      "The curtains parted on their own.",
+      "A long hallway stretched out, lined with floating sentences.",
+      "Some lines sparkled. Some flickered. Some sulked.",
+      "One sentence drifted by whispering, “I deserved better.”",
+      "Skeeter shivered. “This place is weird.”",
+      "Luna poked a floating comma.",
+      "It squeaked and ran away.",
+      "Lily whispered, “We need to find the ending.”"
+    ]
+  },
+  {
+    title: "The First Clue",
+    text: [
+      "A glowing line floated toward them.",
+      "It read: “The ending hides where stories bend.”",
+      "Luna squinted. “WHAT DOES THAT MEAN.”",
+      "Lady Bug smiled. “It’s a riddle.”",
+      "Skeeter pointed ahead. “Maybe that?”",
+      "A doorway twisted like it was made of soft clay.",
+      "The quill sighed. “Yes. The Bend Room. Good luck.”",
+      "Luna ran inside immediately."
+    ]
+  },
+  {
+    title: "The Bend Room",
+    text: [
+      "The room bent sideways, upside‑down, and inside‑out.",
+      "Chairs sat on the walls. Lamps hung from the floor.",
+      "A sentence curled around the ceiling like a cat.",
+      "Luna shouted, “THIS IS MY FAVORITE ROOM EVER.”",
+      "Skeeter grabbed a railing. “I feel seasick.”",
+      "Lily steadied him. “Just breathe.”",
+      "Lady Bug pointed. “Look—there’s another clue.”",
+      "A glowing line hovered near a crooked bookshelf."
+    ]
+  },
+  {
+    title: "Second Clue",
+    text: [
+      "The line read: “The ending fears loud voices.”",
+      "Luna gasped dramatically. “OH NO.”",
+      "The room shook.",
+      "The line darted away like a startled bird.",
+      "Skeeter whispered, “Luna… maybe be quiet?”",
+      "Luna whispered loudly, “OKAY.”",
+      "Lily sighed. “That’s not quiet.”",
+      "Lady Bug giggled softly."
+    ]
+  },
+  {
+    title: "The Whispering Door",
+    text: [
+      "A tiny wooden door appeared in the wall.",
+      "It had no handle, only a small ear carved into it.",
+      "The quill floated up. “Whisper to it.”",
+      "Lily leaned close. “We’re here to fix the story.”",
+      "The door glowed softly.",
+      "Luna leaned in. “HI LITTLE DOOR—”",
+      "The door slammed shut.",
+      "Skeeter groaned. “Luna…”"
+    ]
+  },
+  {
+    title: "Trying Again",
+    text: [
+      "Lady Bug whispered gently. “We want to help.”",
+      "The door cracked open.",
+      "Skeeter whispered, “Please?”",
+      "The door opened wider.",
+      "Lily whispered, “We’re calm. We’re kind.”",
+      "The door swung open fully.",
+      "Luna whispered, “I DID IT.”",
+      "The quill said, “You absolutely did not.”"
+    ]
+  },
+  {
+    title: "The Ending’s Trail",
+    text: [
+      "Inside the tiny door was a narrow hallway.",
+      "Footprints made of ink dotted the floor.",
+      "They zig‑zagged wildly.",
+      "Luna gasped. “THE ENDING RUNS LIKE ME.”",
+      "Skeeter nodded. “That explains a lot.”",
+      "Lily traced the prints. “It’s scared.”",
+      "Lady Bug whispered, “Then we have to be gentle.”",
+      "The quill floated nervously. “Please hurry.”"
+    ]
+  },
+  {
+    title: "The Inkstorm",
+    text: [
+      "The hallway opened into a swirling storm of ink.",
+      "Sentences spun like leaves in the wind.",
+      "Words splashed against the walls.",
+      "Skeeter shielded his face. “It’s like a word tornado!”",
+      "Luna laughed. “I LOVE IT.”",
+      "Lily held the quill. “Can you calm it?”",
+      "The quill trembled. “Only if you’re calm too.”",
+      "Lady Bug took a deep breath. “We can do that.”"
+    ]
+  },
+  {
+    title: "Calming the Storm",
+    text: [
+      "They stood together, breathing slowly.",
+      "The inkstorm softened.",
+      "Sentences drifted instead of spinning.",
+      "A tiny glowing shape peeked out from behind a floating paragraph.",
+      "Lily whispered, “There it is.”",
+      "Skeeter nodded. “The ending.”",
+      "Luna waved gently. “HI LITTLE ENDING.”",
+      "The ending trembled but didn’t run."
+    ]
+  },
+  {
+    title: "The Ending Speaks",
+    text: [
+      "The glowing ending floated closer.",
+      "It squeaked, “I didn’t know how to finish.”",
+      "Lily smiled softly. “That’s okay.”",
+      "Skeeter said, “We can help you.”",
+      "Lady Bug nodded. “Stories don’t have to be perfect.”",
+      "Luna added, “THEY JUST HAVE TO BE FUN.”",
+      "The ending brightened.",
+      "The inkstorm faded completely."
+    ]
+  },
+  {
+    title: "Returning the Ending",
+    text: [
+      "The ending floated into the scroll.",
+      "The blank page filled with glowing words.",
+      "The quill sighed in relief. “Finally.”",
+      "Lily read the last line. “It’s beautiful.”",
+      "Skeeter smiled. “We fixed it.”",
+      "Lady Bug nodded. “Together.”",
+      "Luna shouted, “TEAM AWESOME!”",
+      "The scroll sparkled brightly."
+    ]
+  },
+  {
+    title: "The Stage Returns",
+    text: [
+      "The hallway dissolved into curtains.",
+      "The stage reappeared beneath their feet.",
+      "The quill bowed dramatically.",
+      "“You saved the story,” it said.",
+      "Lily bowed back. “Happy to help.”",
+      "Skeeter touched the stage. “Thanks for not dropping us.”",
+      "Lady Bug smiled. “Good stage.”",
+      "Luna shouted, “I WANT A TALKING FLOOR AT HOME.”"
+    ]
+  },
+  {
+    title: "Goodbye, Quill",
+    text: [
+      "The stage shimmered.",
+      "The quill floated higher. “Come back anytime.”",
+      "Lily waved. “Maybe next book.”",
+      "Skeeter smiled. “If the ending behaves.”",
+      "Lady Bug giggled. “No promises.”",
+      "Luna yelled, “BYE INKY FRIEND.”",
+      "The quill replied, “Please lower your volume.”",
+      "The world began to fade."
+    ]
+  },
+  {
+    title: "Back to the Bedroom",
+    text: [
+      "The stage blurred.",
+      "Ink smell faded into the scent of laundry detergent.",
+      "They landed on Skeeter’s bed.",
+      "The quill pen lay beside them.",
+      "Luna grabbed it immediately.",
+      "“I AM THE CAPTAIN OF WRITING,” she declared.",
+      "Lady Bug sighed. “Please don’t rewrite the furniture.”",
+      "Skeeter laughed softly.",
+      "Lily smiled. “At least the bed still doesn’t talk.”"
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
