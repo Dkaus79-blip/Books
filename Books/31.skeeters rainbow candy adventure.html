@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gummy Rainbow Candy Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #ffb7d5 0, #aee6ff 35%, #fff6a2 70%, #fefefe 100%);
+    color: #0c0c12;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .candy-haze {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.7), transparent 60%),
+      radial-gradient(circle at 70% 80%, rgba(255,255,255,0.5), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .floating-candy {
+    position: fixed;
+    left: -160px;
+    top: calc(15% + var(--offset));
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.8);
+    text-shadow: 0 0 6px rgba(255,255,255,0.7);
+    white-space: nowrap;
+    animation: candyDrift 20s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes candyDrift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(140vw); }
+  }
+
+  .gummy-bear {
+    position: fixed;
+    bottom: 40px;
+    right: 8%;
+    width: 110px;
+    height: 150px;
+    background:
+      radial-gradient(circle at 30% 20%, #ff7fb0, #ff4f8a);
+    border-radius: 40px;
+    box-shadow: 0 0 18px rgba(255, 120, 180, 0.7);
+    clip-path: polygon(
+      20% 10%, 35% 0%, 65% 0%, 80% 10%,
+      90% 30%, 90% 60%, 80% 80%, 65% 100%,
+      35% 100%, 20% 80%, 10% 60%, 10% 30%
+    );
+    opacity: 0.9;
+    animation: gummyBounce 5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes gummyBounce {
+    0%   { transform: translateY(0) scale(1); }
+    50%  { transform: translateY(-10px) scale(1.03); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 252, 246, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.35);
+    border: 2px solid rgba(255,255,255,0.9);
+    position: relative;
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3b2344;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #5a4b66;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #3b2344;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #1a1020;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffe7fb);
+    color: #3b2344;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="candy-haze"></div>
+
+<div class="floating-candy" style="--offset: 0px;">gummy bears wobble in rainbow light…</div>
+<div class="floating-candy" style="--offset: 70px;">sprinkles drift like tiny shooting stars…</div>
+<div class="floating-candy" style="--offset: 140px;">every color tastes like a giggle…</div>
+
+<div class="gummy-bear"></div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Gummy Rainbow Candy Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Candy‑Bright Glow",
+    text: [
+      "The book glowed candy‑bright.",
+      "Not normal bright. Not lamp bright. Rainbow‑sugar bright.",
+      "Luna gasped. “CANDY WORLD.”",
+      "Lily squinted. “It looks… sticky.”",
+      "Skeeter touched the cover.",
+      "The room smelled like fruit punch and cotton candy.",
+      "The floor softened under their feet.",
+      "And the bed turned into a giant marshmallow."
+    ]
+  },
+  {
+    title: "Landing in the Cotton Candy Forest",
+    text: [
+      "They sank gently into fluffy pink trees.",
+      "Branches puffed like clouds.",
+      "The ground bounced like a soft trampoline.",
+      "Lady Bug poked the nearest tree.",
+      "“It’s actually cotton candy,” she whispered.",
+      "Luna took a huge bite.",
+      "Skeeter yelped. “Luna, we don’t know the rules yet!”",
+      "Luna mumbled, “Worth it.”"
+    ]
+  },
+  {
+    title: "First Warning",
+    text: [
+      "The forest shivered.",
+      "Colors rippled across the sky.",
+      "The cotton candy tree Luna bit sagged sadly.",
+      "A distant voice shouted, “NOOOO—DON’T EAT THAT ONE!”",
+      "Lily blinked. “Did the forest just yell at us?”",
+      "Lady Bug pointed. “Look—someone’s coming.”",
+      "A big shape wobbled between the trees.",
+      "Skeeter gulped. “Please be friendly.”"
+    ]
+  },
+  {
+    title: "Gummy Guide Bear",
+    text: [
+      "A giant gummy bear waddled into view.",
+      "He was bright pink, shiny, and slightly lopsided.",
+      "He waved both arms frantically.",
+      "“HELLO! WELCOME! PLEASE STOP EATING RANDOM TREES!”",
+      "Luna grinned. “You’re delicious.”",
+      "Gummy Guide Bear squeaked. “I am NOT a snack.”",
+      "Skeeter whispered, “We’re sorry. Mostly Luna.”",
+      "Lily smiled gently. “We didn’t know the rules yet.”"
+    ]
+  },
+  {
+    title: "Rules of the Candy World",
+    text: [
+      "Gummy Guide Bear took a deep breath.",
+      "“Okay,” he said. “Rule one: You can eat almost everything.”",
+      "Luna cheered. “BEST WORLD EVER.”",
+      "“Rule two,” he continued, “some things are better not to eat.”",
+      "Lady Bug tilted her head. “Like what?”",
+      "Gummy Guide Bear pointed at the sagging tree.",
+      "“That one holds the forest together,” he said.",
+      "Skeeter winced. “Oops.”"
+    ]
+  },
+  {
+    title: "The Melting Edge",
+    text: [
+      "He led them to the edge of the forest.",
+      "Beyond the trees, the candy world looked wrong.",
+      "Chocolate hills drooped like tired pillows.",
+      "Rainbow bridges dripped into sticky puddles.",
+      "Soda rivers fizzed too hard, splashing everywhere.",
+      "Gummy Guide Bear’s voice trembled.",
+      "“The world is melting,” he said.",
+      "“Because someone ate the Story Core Candy.”"
+    ]
+  },
+  {
+    title: "Story Core Candy",
+    text: [
+      "Lily frowned. “What’s Story Core Candy?”",
+      "Gummy Guide Bear wrung his gummy paws.",
+      "“It’s the candy that keeps everything balanced,” he said.",
+      "“Flavor, color, shape, fun… all of it.”",
+      "Skeeter swallowed. “And it’s gone?”",
+      "Gummy Guide Bear nodded sadly.",
+      "Lady Bug whispered, “Then we have to find it.”",
+      "Luna shouted, “QUEST TIME.”"
+    ]
+  },
+  {
+    title: "Gummy Village",
+    text: [
+      "They followed Gummy Guide Bear into a small village.",
+      "Tiny gummy houses lined the path.",
+      "Gummy kids bounced on jellybean steps.",
+      "Rainbow flags fluttered overhead.",
+      "But some houses drooped at the edges.",
+      "Colors faded near the rooftops.",
+      "Gummy Guide Bear sighed. “We’re trying to stay cheerful.”",
+      "Lily whispered, “You’re doing a good job.”"
+    ]
+  },
+  {
+    title: "Meeting the Gummy Mayor",
+    text: [
+      "A serious‑looking gummy bear marched toward them.",
+      "He wore a tiny candy‑cane tie.",
+      "“You brought outsiders,” he said.",
+      "Gummy Guide Bear nodded. “They want to help.”",
+      "The Gummy Mayor studied the kids carefully.",
+      "“Can you follow rules?” he asked.",
+      "Luna said, “Probably not.”",
+      "Skeeter groaned. “We’ll try.”"
+    ]
+  },
+  {
+    title: "The Mayor’s Warning",
+    text: [
+      "The Gummy Mayor pointed at a rainbow hill.",
+      "“Someone ate the Story Core Candy,” he said.",
+      "“Now the world is too sweet in some places… and too sour in others.”",
+      "Lady Bug asked, “Too sweet?”",
+      "Gummy Guide Bear nodded. “You get stuck to everything.”",
+      "Lily asked, “Too sour?”",
+      "The Mayor shuddered. “You can’t stop making faces.”",
+      "Luna laughed. “I want to see that.”"
+    ]
+  },
+  {
+    title: "First Candy Mistake",
+    text: [
+      "They walked past a patch of glittering gumdrops.",
+      "A sign read: “DO NOT EAT DURING QUEST.”",
+      "Luna squinted. “That’s a suggestion.”",
+      "Skeeter grabbed her sleeve. “It’s a rule.”",
+      "Luna popped one into her mouth anyway.",
+      "Her shoes glued to the ground instantly.",
+      "Gummy Guide Bear squeaked. “That’s what I meant by too sweet!”",
+      "Lily sighed. “We’ll carry her.”"
+    ]
+  },
+  {
+    title: "Rainbow Bridge",
+    text: [
+      "They reached a glowing rainbow bridge.",
+      "Colors shimmered under their feet.",
+      "Soda fizz bubbled below.",
+      "Gummy Guide Bear whispered, “This used to be stable.”",
+      "The bridge wobbled like jelly.",
+      "Lady Bug stepped carefully. “We’ll go slow.”",
+      "Luna shouted, “WOBBLE BRIDGE,” and jumped.",
+      "The bridge shook dangerously."
+    ]
+  },
+  {
+    title: "Sprinkle Storm",
+    text: [
+      "Dark clouds formed overhead.",
+      "Rainbow sprinkles began to fall.",
+      "At first, it was pretty.",
+      "Then the sprinkles turned sharp and sour.",
+      "Skeeter shielded his eyes. “Ow—spicy sprinkles!”",
+      "Gummy Guide Bear yelled, “Under the licorice arch!”",
+      "They dashed to a black licorice tunnel.",
+      "Lily panted. “Is this safe?”"
+    ]
+  },
+  {
+    title: "Licorice Tunnel",
+    text: [
+      "Inside the tunnel, everything was quiet.",
+      "Sprinkles pattered harmlessly outside.",
+      "The air smelled like strong licorice.",
+      "Luna made a face. “This tastes like homework.”",
+      "Gummy Guide Bear giggled nervously.",
+      "“Some candy is for balance, not fun,” he said.",
+      "Lady Bug nodded. “Like vegetables, but sticky.”",
+      "Skeeter laughed softly."
+    ]
+  },
+  {
+    title: "Clue in the Jellybean Cave",
+    text: [
+      "They emerged into a cave full of giant jellybeans.",
+      "Colors glowed softly in the dim light.",
+      "A jellybean pulsed brighter than the rest.",
+      "Lily touched it gently.",
+      "Words appeared on its surface.",
+      "“The Story Core Candy hides where flavor is fair,” she read.",
+      "Gummy Guide Bear frowned. “Fair flavor?”",
+      "Lady Bug whispered, “Not too sweet. Not too sour.”"
+    ]
+  },
+  {
+    title: "Too Sweet, Too Sour",
+    text: [
+      "They passed a lake of caramel.",
+      "The shore was covered in stuck candy wrappers.",
+      "“Too sweet,” Gummy Guide Bear said.",
+      "They climbed a hill of sour crystals.",
+      "Their faces twisted with every step.",
+      "“Too sour,” Lily said, laughing through the grimace.",
+      "Skeeter pointed ahead.",
+      "“Then the Story Core Candy must be somewhere in between.”"
+    ]
+  },
+  {
+    title: "Peppermint Plains",
+    text: [
+      "They reached a wide field of peppermint swirls.",
+      "The air felt cool and calm.",
+      "Colors were bright but not blinding.",
+      "Candy smelled sweet but not heavy.",
+      "Gummy Guide Bear relaxed his shoulders.",
+      "“This feels… right,” he said.",
+      "Lady Bug smiled. “Balanced.”",
+      "Luna whispered, “I still want to lick everything.”"
+    ]
+  },
+  {
+    title: "The Hidden Candy",
+    text: [
+      "In the center of the plains stood a small pedestal.",
+      "On top sat a single candy.",
+      "It shimmered with every color of the rainbow.",
+      "But it wasn’t loud or flashy.",
+      "Lily stepped closer. “That has to be it.”",
+      "Gummy Guide Bear trembled. “Story Core Candy.”",
+      "Skeeter asked, “Can we touch it?”",
+      "The pedestal glowed softly."
+    ]
+  },
+  {
+    title: "Choosing Carefully",
+    text: [
+      "Luna reached out immediately.",
+      "Lily grabbed her wrist gently.",
+      "“We have to be careful,” she said.",
+      "Lady Bug nodded. “This candy affects everything.”",
+      "Skeeter took a slow breath.",
+      "“We’ll move it together,” he said.",
+      "Gummy Guide Bear whispered, “Thank you for not eating it.”",
+      "Luna pouted. “I was only going to nibble.”"
+    ]
+  },
+  {
+    title: "Restoring the World",
+    text: [
+      "They lifted the Story Core Candy as a team.",
+      "The plains brightened.",
+      "Sour hills softened.",
+      "Sweet lakes settled.",
+      "Rainbow bridges steadied.",
+      "Gummy houses perked up.",
+      "Gummy Guide Bear’s eyes sparkled.",
+      "“You fixed it,” he whispered."
+    ]
+  },
+  {
+    title: "Candy Balance",
+    text: [
+      "The Gummy Mayor appeared on a peppermint hill.",
+      "He looked less droopy.",
+      "“The world feels fair again,” he said.",
+      "“Not too sweet. Not too sour.”",
+      "Lily smiled. “That’s what stories need too.”",
+      "Skeeter nodded. “Balance.”",
+      "Lady Bug added, “And a little chaos.”",
+      "Luna shouted, “AND SNACKS.”"
+    ]
+  },
+  {
+    title: "Goodbye, Gummy Guide Bear",
+    text: [
+      "The sky shimmered with gentle rainbow light.",
+      "Gummy Guide Bear waved both arms.",
+      "“Thank you for not eating the important things,” he said.",
+      "Luna grinned. “You were very clear about the signs.”",
+      "Skeeter laughed. “We’ll remember your rules.”",
+      "Lady Bug hugged him carefully.",
+      "Lily whispered, “You’re a good guide.”",
+      "His gummy cheeks glowed brighter."
+    ]
+  },
+  {
+    title: "Back to the Bedroom",
+    text: [
+      "The peppermint plains blurred.",
+      "Candy smells faded into laundry detergent and pillow fluff.",
+      "They landed back on Skeeter’s bed.",
+      "A tiny gummy bear sat on the blanket.",
+      "It waved one arm slowly.",
+      "Luna grabbed it. “SOUVENIR.”",
+      "Lady Bug sighed. “Please don’t eat our new friend.”",
+      "Skeeter smiled. “At least the bed still doesn’t stick to us.”",
+      "Lily laughed softly."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
