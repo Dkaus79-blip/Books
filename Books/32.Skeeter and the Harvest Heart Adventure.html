@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter and the Harvest Heart Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #c98b4a 0, #8a5a2e 35%, #4a2e1a 70%, #1f130b 100%);
+    color: #201109;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(252, 244, 232, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255, 245, 230, 0.9);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #4a2b12;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #6b3a18;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #4a2b12;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #201109;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #fff7ea, #f0c48a);
+    color: #3b1f0d;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* HARVEST FOG + GLOW + PUMPKIN GRAPHICS */
+
+  .pumpkin-fall-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,180,90,0.35) 0, rgba(255,180,90,0) 60%);
+    background-size: 4px 40px;
+    animation: pumpkinFall 1.4s linear infinite;
+    opacity: 0.45;
+    z-index: 1;
+  }
+
+  @keyframes pumpkinFall {
+    from { background-position: 0 -40px; }
+    to   { background-position: 0 0; }
+  }
+
+  .harvest-fog {
+    position: fixed;
+    inset: -40px;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255,230,190,0.35) 0, transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(255,215,170,0.3) 0, transparent 55%),
+      radial-gradient(circle at 30% 80%, rgba(255,220,180,0.25) 0, transparent 55%);
+    filter: blur(2px);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .harvest-glow {
+    position: fixed;
+    width: 140px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 0,
+      rgba(255,220,160,0.95) 0,
+      rgba(255,220,160,0.0) 70%);
+    bottom: -40px;
+    left: 8%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .harvest-glow:nth-child(2) {
+    left: auto;
+    right: 10%;
+  }
+
+  .pumpkin-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .pumpkin {
+    position: absolute;
+    width: 30px;
+    height: 24px;
+    border-radius: 50% 50% 45% 45%;
+    background: radial-gradient(circle at 30% 30%, #ffd08a 0, #f28a1a 45%, #b4510a 90%);
+    box-shadow: 0 0 10px rgba(255,180,90,0.8);
+    animation: pumpkinFloat 18s linear infinite;
+  }
+
+  .pumpkin::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 8px;
+    background: #4a2b12;
+    border-radius: 3px;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .pumpkin.p1 { left: 12%; top: 18%; animation-delay: 0s; }
+  .pumpkin.p2 { left: 70%; top: 24%; animation-delay: 4s; }
+  .pumpkin.p3 { left: 40%; top: 60%; animation-delay: 8s; }
+
+  @keyframes pumpkinFloat {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+    50%  { transform: translateY(-18px) rotate(6deg); opacity: 0.7; }
+    100% { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+  }
+
+  /* faint scarecrow silhouette behind book */
+  .scarecrow-shadow {
+    position: fixed;
+    bottom: -10px;
+    left: 50%;
+    width: 180px;
+    height: 260px;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle at 50% 0, rgba(0,0,0,0.35) 0, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="pumpkin-fall-layer"></div>
+<div class="harvest-fog"></div>
+<div class="harvest-glow"></div>
+<div class="harvest-glow"></div>
+<div class="scarecrow-shadow"></div>
+
+<div class="pumpkin-layer">
+  <div class="pumpkin p1"></div>
+  <div class="pumpkin p2"></div>
+  <div class="pumpkin p3"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter and the Harvest Heart Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Harvest Night in the Maze",
+    text: [
+      "The sky above the fields glowed a soft orange, like the whole world was lit by one giant pumpkin.",
+      "Lanterns bobbed in the air over the hay, drifting slowly along invisible strings. Tiny bats swooped between them, squeaking happily.",
+      "Skeeter stood at the entrance of the Harvest Maze, staring at the tall walls of hay that curled and twisted in every direction.",
+      "“This is… huge,” he said quietly.",
+      "Lily studied the paths. “It’s not just a maze,” she said. “It’s a puzzle.”",
+      "Lady Bug brushed straw off her skirt. “A very pokey puzzle,” she added.",
+      "Luna spun in a circle, arms wide. “IT’S A MAZE OF DESTINY,” she shouted.",
+      "The hay rustled, as if the maze was laughing."
+    ]
+  },
+  {
+    title: "The Maze That Moves",
+    text: [
+      "They stepped inside.",
+      "The hay walls rose high on either side, golden and warm. Lanterns floated above them, casting soft circles of light on the ground.",
+      "Skeeter took three careful steps forward.",
+      "Behind them, the entrance quietly slid shut.",
+      "The hay shifted with a soft shhhh sound, and a new path opened to their left.",
+      "Lily blinked. “Did the maze just… move?”",
+      "Lady Bug nodded slowly. “I think it did.”",
+      "Luna grinned. “GOOD. I LIKE A CHALLENGE.”",
+      "Skeeter swallowed. “I like exits,” he muttered."
+    ]
+  },
+  {
+    title: "Pumpkins and Whispers",
+    text: [
+      "They followed a line of glowing pumpkins that hovered just above the ground, bobbing gently as if they were leading the way.",
+      "Every so often, the hay walls shivered and slid, closing one path and opening another.",
+      "“It’s not random,” Lily said, watching carefully. “It waits until we move, then it changes.”",
+      "Lady Bug listened. “Do you hear that?”",
+      "Soft whispers drifted through the hay, like the maze was talking to itself.",
+      "Luna cupped a hand to her ear. “It’s saying, ‘WELCOME, LUNA, YOU ARE THE MAZE QUEEN.’”",
+      "Skeeter frowned. “Pretty sure it’s not saying that.”",
+      "The hay rustled again. It sounded suspiciously like giggling."
+    ]
+  },
+  {
+    title: "A Clearing in the Center",
+    text: [
+      "After what felt like a dozen turns and three almost‑arguments about directions, they stepped into a small clearing.",
+      "The hay walls pulled back, forming a circle. Lanterns hung low here, glowing extra warm.",
+      "In the middle of the clearing stood a scarecrow.",
+      "His hat drooped over one eye. His straw shoulders slumped. A small pumpkin sat at his feet, flickering softly.",
+      "He looked up when he heard them, button eyes widening.",
+      "“Oh!” he gasped. “You’re… not hay.”",
+      "Skeeter shook his head. “Nope. Definitely not hay.”",
+      "Luna waved both arms. “WE ARE ADVENTURERS.”"
+    ]
+  },
+  {
+    title: "The Lost Scarecrow",
+    text: [
+      "The scarecrow straightened, trying to look important. His voice rustled like dry leaves.",
+      "“I am supposed to be the Keeper of the Harvest Maze,” he said. “Guardian of the paths. Watcher of the Heart.”",
+      "He paused, then sighed so hard a bit of straw fell out of his sleeve.",
+      "“But the maze moved,” he admitted. “And I… lost the way to the center.”",
+      "Lily tilted her head. “You got lost in your own maze?”",
+      "The scarecrow winced. “Please don’t tell the other scarecrows.”",
+      "Lady Bug’s voice softened. “We won’t,” she said. “But maybe we can help you find it again.”",
+      "The scarecrow’s straw chest seemed to brighten. “You’d do that?” he asked."
+    ]
+  },
+  {
+    title: "The Harvest Heart",
+    text: [
+      "The scarecrow pointed down a narrow path lined with pumpkins.",
+      "“At the true center of the maze,” he said, “there is the Harvest Heart. A pumpkin that keeps the whole world glowing.”",
+      "He looked down at his straw hands. “When the maze shifted, I lost the path. The Heart dimmed. The maze started playing tricks.”",
+      "Skeeter glanced at the moving walls. “You don’t say,” he murmured.",
+      "Lily nodded. “So if we find the Harvest Heart, the maze will calm down.”",
+      "Lady Bug smiled. “Then that’s what we’ll do.”",
+      "Luna punched the air. “QUEST ACCEPTED.”",
+      "The lanterns above them brightened, as if they approved."
+    ]
+  },
+  {
+    title: "Following the Glow",
+    text: [
+      "They walked together, the scarecrow shuffling nervously beside them.",
+      "Every time the maze shifted, Lily watched the pattern of the hay, tracing invisible lines in the air.",
+      "“It’s like it’s testing us,” she said. “Seeing if we’ll give up.”",
+      "Lady Bug squeezed the scarecrow’s arm. “We’re not giving up,” she said.",
+      "Luna got briefly stuck in a hay drift. “I AM TEMPORARILY REARRANGED,” she shouted.",
+      "Skeeter pulled her free. “You’re fine,” he said. “The maze just likes you too much.”",
+      "Tiny bats fluttered overhead, landing on lanterns and watching them pass.",
+      "The pumpkins along the path glowed brighter the farther they went."
+    ]
+  },
+  {
+    title: "The Maze Fights Back",
+    text: [
+      "The next turn slammed shut right in front of them, hay walls sliding together with a soft thump.",
+      "Another path opened to the right, darker and narrower.",
+      "Skeeter frowned. “I don’t like that one.”",
+      "The scarecrow twisted his hat in his hands. “That’s the maze being stubborn,” he said. “It doesn’t trust easily.”",
+      "Lily stepped forward. “We’re not here to hurt it,” she said, speaking to the hay like it could hear her.",
+      "“We’re here to help you find your center again.”",
+      "For a moment, nothing happened.",
+      "Then a single pumpkin floated into the dark path and lit up, warm and steady.",
+      "Lady Bug smiled. “I think it heard you.”"
+    ]
+  },
+  {
+    title: "The Heart of the Maze",
+    text: [
+      "The narrow path opened into a wide, round chamber.",
+      "Hay walls curved gently around them, no longer shifting. Lanterns hung in perfect circles overhead.",
+      "In the center stood a pedestal woven from golden straw.",
+      "On top of it sat a pumpkin.",
+      "Not just any pumpkin—this one glowed from the inside, light pulsing softly like a heartbeat.",
+      "“The Harvest Heart,” the scarecrow whispered. His voice shook. “I thought I’d never see it again.”",
+      "The bats perched quietly along the edges. The pumpkins around the room flickered in time with the Heart.",
+      "Everything felt warm and still."
+    ]
+  },
+  {
+    title: "Finding the Way Back",
+    text: [
+      "The scarecrow stepped closer, straw hands trembling.",
+      "“I was supposed to protect you,” he said to the Heart. “But I got lost.”",
+      "The Harvest Heart glowed a little brighter, as if answering.",
+      "Lily smiled. “You didn’t stop caring,” she said. “You just needed help.”",
+      "Lady Bug nodded. “Everyone gets lost sometimes.”",
+      "Skeeter looked around the chamber. The hay walls were calm now, no longer sliding or whispering.",
+      "“I think the maze forgives you,” he said.",
+      "Luna patted the scarecrow’s arm. “AND SO DO WE,” she added."
+    ]
+  },
+  {
+    title: "A Calmer Maze",
+    text: [
+      "On the way back, the paths were different.",
+      "The hay no longer jumped in front of them. The lanterns hung in neat lines, lighting clear routes.",
+      "Tiny ghosts peeked out from the corners, waving shyly before drifting away.",
+      "The scarecrow walked taller now, hat straightened, shoulders squared.",
+      "“I can guide travelers again,” he said. “I can keep them from getting lost.”",
+      "Skeeter grinned. “Just don’t lose yourself this time.”",
+      "The scarecrow laughed, a soft rustling sound. “If I do,” he said, “I know who to ask for help.”",
+      "Luna pointed at the bats. “AND THEM,” she said. “THEY’RE VERY SWOOPY.”"
+    ]
+  },
+  {
+    title: "Harvest Night",
+    text: [
+      "They reached the edge of the maze as the sky deepened into a cozy purple.",
+      "Lanterns floated over the fields, casting warm circles of light on the hay.",
+      "The Harvest Heart’s glow seemed to reach all the way to the horizon.",
+      "The scarecrow stood at the entrance now, where they had first seen the towering walls.",
+      "“Thank you,” he said. “For helping me find the center again.”",
+      "Lady Bug smiled. “You were never really alone,” she said.",
+      "Lily added, “You just needed someone to walk the maze with you.”",
+      "Skeeter looked back at the paths, now calm and welcoming.",
+      "Luna stretched her arms. “BEST MAZE EVER,” she declared.",
+      "The hay rustled softly, like the maze was agreeing.",
+      "Above them, pumpkins drifted through the harvest sky, glowing like tiny hearts of their own."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
