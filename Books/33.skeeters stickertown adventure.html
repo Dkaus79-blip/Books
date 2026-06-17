@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter’s Sticker World Adventure</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #ffe6f7 0, #ffc9de 30%, #f7a9ff 55%, #f07ac0 75%, #c44b9a 100%);
+    color: #201020;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 252, 255, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(120, 0, 80, 0.55);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.95);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b1b5b;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7a3b7a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #5b1b5b;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #201020;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffe4ff);
+    color: #4b104b;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(120,0,80,0.35);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* STICKER WORLD GRAPHICS */
+
+  .sticker-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sticker-shape {
+    position: absolute;
+    opacity: 0.7;
+    filter: drop-shadow(0 3px 6px rgba(120,0,80,0.35));
+    animation: floatSticker 18s linear infinite;
+  }
+
+  .sticker-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, #fff, #ffd1f0);
+    border: 3px solid #ff8fd6;
+  }
+
+  .sticker-star {
+    width: 0;
+    height: 0;
+    border-left: 26px solid transparent;
+    border-right: 26px solid transparent;
+    border-bottom: 52px solid #ffe066;
+    transform: rotate(18deg);
+    border-radius: 4px;
+  }
+
+  .sticker-heart {
+    width: 40px;
+    height: 40px;
+    position: relative;
+  }
+  .sticker-heart::before,
+  .sticker-heart::after {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 36px;
+    background: #ff7aa8;
+    border-radius: 24px 24px 0 0;
+    top: 0;
+  }
+  .sticker-heart::before {
+    left: 0;
+    transform: rotate(-45deg);
+    transform-origin: bottom right;
+  }
+  .sticker-heart::after {
+    right: 0;
+    transform: rotate(45deg);
+    transform-origin: bottom left;
+  }
+
+  .sticker-tab {
+    width: 80px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff, #ffe6ff);
+    border: 2px dashed #ff9ad5;
+    transform: rotate(-6deg);
+  }
+
+  .s1 { left: 8%; top: 12%; animation-delay: 0s; }
+  .s2 { right: 10%; top: 18%; animation-delay: 4s; }
+  .s3 { left: 20%; bottom: 12%; animation-delay: 8s; }
+  .s4 { right: 18%; bottom: 16%; animation-delay: 12s; }
+
+  @keyframes floatSticker {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+    50%  { transform: translateY(-18px) rotate(6deg); opacity: 0.7; }
+    100% { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+  }
+
+  .paper-glow {
+    position: fixed;
+    inset: -40px;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.55) 0, transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(255,255,255,0.45) 0, transparent 55%),
+      radial-gradient(circle at 30% 80%, rgba(255,255,255,0.35) 0, transparent 55%);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .curl-corner {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    bottom: -10px;
+    right: -10px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.0) 0, rgba(255,255,255,0.9) 60%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="paper-glow"></div>
+<div class="curl-corner"></div>
+
+<div class="sticker-layer">
+  <div class="sticker-shape sticker-circle s1"></div>
+  <div class="sticker-shape sticker-star s2"></div>
+  <div class="sticker-shape sticker-heart s3"></div>
+  <div class="sticker-shape sticker-tab s4"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter’s Sticker World Adventure</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "A Crinkly Kind of Glow",
+    text: [
+      "Skeeter sat on his bedroom floor, surrounded by paper scraps and half‑peeled stickers.",
+      "He was trying to stick a star onto his notebook, but one point kept folding over.",
+      "“Why are stickers so crinkly?” he muttered.",
+      "Luna lay on her back nearby, arms spread wide. “Because they are ALIVE,” she said.",
+      "Lily sat at the desk, lining up colored pens in a perfect rainbow row.",
+      "Lady Bug sat on the windowsill, knees pulled up, watching them with a small, knowing smile.",
+      "The magic book on Skeeter’s shelf gave a soft, papery rustle.",
+      "Its cover shimmered with bright, pastel light, like a whole sheet of new stickers.",
+      "Lady Bug turned her head. “Book‑y,” she said quietly.",
+      "The book floated down and landed gently on the floor between them."
+    ]
+  },
+  {
+    title: "The Sticker Page",
+    text: [
+      "The book flipped open by itself.",
+      "Inside, the page was covered in shapes—stars, hearts, circles, little curled corners.",
+      "Some of the shapes were already peeling up, like they were trying to escape.",
+      "Luna gasped. “STICKER WORLD.”",
+      "Lily leaned closer. “The edges are curling,” she said. “Like they’ve been peeled before.”",
+      "Skeeter reached out and touched one tiny sticker star.",
+      "The whole page glowed brighter.",
+      "Light spilled out, soft and colorful, wrapping around all four of them.",
+      "Lady Bug slid off the windowsill and stepped closer as the room blurred away.",
+      "The world turned shiny and sticky and bright."
+    ]
+  },
+  {
+    title: "Welcome to Sticker Town",
+    text: [
+      "They landed on a smooth, slightly sticky street.",
+      "Buildings rose around them, flat and bright, with corners peeling up like giant stickers.",
+      "Trees had shiny, flat leaves outlined in white.",
+      "Even the clouds in the sky looked like fluffy stickers, with little dashed lines around them.",
+      "Skeeter took a careful step. His shoe made a soft peel‑peel sound.",
+      "“Okay,” he said. “This is definitely Sticker World.”",
+      "Luna spun in a circle. “THIS IS MY TRUE HOME.”",
+      "Lily smiled a little. “It is very… organized,” she said, looking at the neat rows of sticker houses.",
+      "Lady Bug hopped down from the curb and touched a sticker flower. It bent, then sprang back up.",
+      "“Boing‑y,” she said."
+    ]
+  },
+  {
+    title: "The Big Mural",
+    text: [
+      "At the end of the street, a huge wall rose up.",
+      "On it was a giant sticker mural, made of hundreds of pieces.",
+      "Some stickers glowed softly, perfectly in place.",
+      "Others were crooked, hanging by one corner, or stuck in the wrong spots.",
+      "There were empty shapes too, waiting for the right pieces.",
+      "Lily pointed. “That’s not finished,” she said.",
+      "Skeeter nodded. “It looks like a puzzle.”",
+      "Luna cupped her hands around her mouth. “HELLO, GIANT STICKER WALL.”",
+      "Lady Bug folded her arms lightly. “Miss‑ing bits,” she said.",
+      "Somewhere nearby, a small voice answered, “Exactly.”"
+    ]
+  },
+  {
+    title: "Peely Pete",
+    text: [
+      "They turned and saw a boy made entirely of stickers.",
+      "His head was a round circle with big sticker eyes.",
+      "His smile curled up at one corner, like it was always about to peel.",
+      "One of his arms was already lifting away from his body, curling in the air.",
+      "“Hi!” he said. “I’m Peely Pete! Sorry if I curl when I get excited.”",
+      "He waved, and his hand flopped halfway off, then stuck back down with a soft fwip.",
+      "“I’m Skeeter,” Skeeter said. “This is Luna, Lily, and Lady Bug.”",
+      "Lady Bug gave a small, calm wave. “Hi‑ee,” she said.",
+      "Luna leaned in, eyes wide. “You are a STICKER PERSON,” she whispered. “You are my hero.”",
+      "Pete puffed up proudly, which made his edges curl even more."
+    ]
+  },
+  {
+    title: "A Missing Place",
+    text: [
+      "Peely Pete pointed to the giant mural.",
+      "“I’m supposed to be up there,” he said. “Part of the Great Sticker Story.”",
+      "He frowned, and his smile peeled a little more. “But I don’t know where I go.”",
+      "They all looked at the wall.",
+      "There were shapes of houses, trees, stars, and sticker people.",
+      "Near the top, there was an empty shape that looked like a person with one arm slightly curled.",
+      "Lily tilted her head. “That might be you,” she said.",
+      "Pete’s eyes went wide. “Maybe,” he whispered. “But the mural is all mixed up.”",
+      "Skeeter nodded. “So we fix it,” he said. “And help you find your spot.”",
+      "Luna bounced. “AND WE PEEL THINGS,” she added."
+    ]
+  },
+  {
+    title: "Team Peel (Carefully)",
+    text: [
+      "They walked closer to the mural.",
+      "Some stickers were clearly wrong—a sun stuck at the bottom, a house floating in the sky.",
+      "Lily gently peeled a crooked star and moved it to a different outline.",
+      "It snapped into place with a soft glow.",
+      "“See?” she said. “Right piece, right spot.”",
+      "Skeeter grinned. “We just have to do that a hundred more times.”",
+      "Luna reached for a giant sticker flower on the ground.",
+      "Lily held up a hand. “Maybe don’t peel everything,” she said.",
+      "Peely Pete gasped. “No, no, that one WANTS to be peeled,” he said. “You can tell.”",
+      "Lady Bug smiled faintly. “Some things are ready,” she said. “Some aren’t.”"
+    ]
+  },
+  {
+    title: "The First Peel",
+    text: [
+      "Luna grabbed the edge of the giant sticker flower.",
+      "It lifted with a long, squeaky reeee‑peel sound.",
+      "The flower curled into a big loop.",
+      "“Uh, Luna—” Skeeter started.",
+      "The sticker snapped back like a spring.",
+      "WHAP.",
+      "Luna flew sideways and stuck to Skeeter’s arm like a giant, giggling sticker.",
+      "“I HAVE BECOME ONE WITH YOU,” she announced.",
+      "Peely Pete clapped. “That was AMAZING,” he said. “Ten out of ten peel!”",
+      "Lily’s eyebrow lifted. “You know,” she said, “you can peel stickers without attaching yourself to Skeeter.”"
+    ]
+  },
+  {
+    title: "Jealous, Just a Little",
+    text: [
+      "Skeeter tried to move his arm, but Luna was firmly stuck.",
+      "“I don’t mind,” he said. “It’s just… very sticky.”",
+      "Luna laughed. “We are a TEAM now,” she said.",
+      "Peely Pete nodded. “A very peely team,” he added.",
+      "Lily crossed her arms, just a little.",
+      "She watched Luna stuck to Skeeter’s side, still grinning.",
+      "Lady Bug stood beside Lily, quiet, watching both of them.",
+      "“Stick‑y,” she said softly.",
+      "After a moment, the flower slowly uncurled, and Luna peeled off with a soft pop.",
+      "Lily looked away quickly, then back again. “We should focus on the puzzle,” she said."
+    ]
+  },
+  {
+    title: "Sticker Pieces Everywhere",
+    text: [
+      "They spread out around Sticker Town.",
+      "Some mural pieces were stuck to benches.",
+      "Some were on trees.",
+      "One was halfway up a sticker lamppost, hanging by a corner.",
+      "Skeeter carefully peeled a crooked house and carried it back to the wall.",
+      "Lily checked the outline. “Here,” she said. “Bottom row.”",
+      "When they pressed it into place, the house glowed softly.",
+      "“Nice,” Skeeter said.",
+      "Meanwhile, Luna and Peely Pete were not being careful.",
+      "They had found a very shiny sticker sign."
+    ]
+  },
+  {
+    title: "The Second Peel",
+    text: [
+      "The sign’s bottom corner was already curling up.",
+      "Peely Pete pointed. “Luna, that one,” he said. “It’s practically begging.”",
+      "Luna nodded. “I hear its tiny sticker voice,” she said.",
+      "Across the street, Skeeter called, “Luna, maybe don’t—”",
+      "Too late.",
+      "The sign peeled up in one long, dramatic strip.",
+      "It curled into a giant loop.",
+      "WHAP.",
+      "The sign snapped back and flung Luna straight into Skeeter’s back.",
+      "She stuck there like a giant, laughing backpack."
+    ]
+  },
+  {
+    title: "Skeeter Is Not a Sticker Board",
+    text: [
+      "“Lunaaaa… seriously?” Skeeter said.",
+      "He tried to take a step, but Luna was firmly attached.",
+      "“I DIDN’T MEAN TO,” she said. “I’M A CHAOS MAGNET.”",
+      "Peely Pete clapped again. “Another ten out of ten peel!” he said.",
+      "Lily’s arms were crossed now. Her foot tapped softly.",
+      "“Maybe stop encouraging her,” she told Pete.",
+      "Pete blinked. “But she’s so good at it,” he said.",
+      "Lily glanced at Skeeter, still trying to walk with Luna stuck to him.",
+      "“Skeeter is not a sticker board, you know,” she said.",
+      "Lady Bug gave Skeeter a sympathetic look. “You’ll un‑stick,” she said. “You always do.”"
+    ]
+  },
+  {
+    title: "A Little Less Peeling",
+    text: [
+      "Lady Bug walked around to stand in front of Luna, hands on her hips.",
+      "“Back‑pack,” she said, with a tiny smile.",
+      "After a moment, the sign slowly uncurled.",
+      "Luna peeled off with another soft pop.",
+      "She landed on her feet and brushed herself off.",
+      "“Okay,” she said. “Maybe I’ll peel… slightly less.”",
+      "Lily’s shoulders relaxed. “That would be nice,” she said.",
+      "Peely Pete nodded thoughtfully. “We can peel with purpose,” he said.",
+      "Skeeter laughed. “Peeling with purpose,” he repeated. “I like that.”",
+      "Lady Bug nodded. “Better,” she said. “For every‑one.”"
+    ]
+  },
+  {
+    title: "The Story in the Wall",
+    text: [
+      "Piece by piece, they fixed the mural.",
+      "Lily checked each outline carefully.",
+      "Skeeter carried stickers and pressed them into place.",
+      "Luna and Peely Pete searched for missing pieces that had drifted away.",
+      "Every time a sticker snapped into the right spot, it glowed softly.",
+      "Slowly, the picture on the wall began to make sense.",
+      "“That part is the park,” Skeeter said, pointing.",
+      "“And that’s the town square,” Lily added.",
+      "Near the top, the empty person‑shaped space still waited.",
+      "Peely Pete stared up at it, his edges fluttering."
+    ]
+  },
+  {
+    title: "Pete’s Place",
+    text: [
+      "“That really looks like you,” Skeeter said.",
+      "Lily nodded. “One curled arm,” she said. “Just like yours.”",
+      "Peely Pete took a deep breath.",
+      "“What if I don’t stick right?” he asked.",
+      "Skeeter smiled. “Then we’ll peel you off and try again,” he said.",
+      "Luna grinned. “We are VERY good at peeling,” she added.",
+      "Lily rolled her eyes, but she was smiling too.",
+      "“You’ll fit,” she said. “I can tell.”",
+      "Lady Bug stepped closer to the wall. “Your place is wait‑ing,” she said.",
+      "Pete stepped up to the wall."
+    ]
+  },
+  {
+    title: "Stick Where You Belong",
+    text: [
+      "Peely Pete pressed himself into the empty space.",
+      "For a moment, nothing happened.",
+      "Then the whole mural lit up.",
+      "Colors shimmered across the wall.",
+      "The pictures glowed, showing the story of Sticker Town—its park, its square, its people.",
+      "And one very curly sticker boy in just the right spot.",
+      "“I finally STICK where I belong,” Pete said.",
+      "Skeeter grinned up at him.",
+      "Lily folded her arms, satisfied. “Perfect,” she said.",
+      "Lady Bug smiled. “Just right,” she added."
+    ]
+  },
+  {
+    title: "Back to the Bedroom",
+    text: [
+      "The sticker trees shimmered.",
+      "The sticker clouds fluffed up.",
+      "Even the ground felt a little bouncier under their feet.",
+      "The glow wrapped around Skeeter, Luna, Lily, and Lady Bug like a warm, colorful blanket.",
+      "“I think that means it’s time to go home,” Skeeter said.",
+      "Sticker Town faded away.",
+      "They landed back in Skeeter’s room, the magic book resting between them.",
+      "On its open page was a tiny picture of the finished mural, with Peely Pete smiling from his place.",
+      "Luna looked at Skeeter’s crinkled star sticker.",
+      "“Your star still needs work,” she said."
+    ]
+  },
+  {
+    title: "Stick Together",
+    text: [
+      "Skeeter picked up his sticker sheet and grinned.",
+      "“Maybe it just needs the right spot,” he said.",
+      "Lily sat beside him and drew a neat outline on the notebook page.",
+      "“Here,” she said. “Now it has a place to stick.”",
+      "Luna flopped onto her back again.",
+      "“If I accidentally stick to you again,” she said, “it’s not my fault.”",
+      "Skeeter laughed. “I’ll be ready,” he said.",
+      "Lady Bug settled on the edge of the bed, watching all three of them.",
+      "She looked at the little mural picture in the book.",
+      "“Stick… together,” she said softly.",
+      "The room felt warm and bright and just a little bit sticky in the best way."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>

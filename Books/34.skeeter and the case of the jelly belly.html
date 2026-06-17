@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter and Lily: The Case of the Jelly Belly</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top, #fffbe0 0, #ffe9a8 35%, #ffd27f 65%, #ffb36b 100%);
+    color: #201020;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 252, 245, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(180, 120, 40, 0.55);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.95);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b3b1b;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7a5b2a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #5b3b1b;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #201020;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffecc7);
+    color: #4b2b10;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(160,100,40,0.35);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* SPY / NOTEBOOK GRAPHICS */
+
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .notebook-line {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: rgba(120, 160, 220, 0.35);
+  }
+
+  .n1 { top: 20%; }
+  .n2 { top: 30%; }
+  .n3 { top: 40%; }
+  .n4 { top: 50%; }
+  .n5 { top: 60%; }
+  .n6 { top: 70%; }
+
+  .margin-line {
+    position: absolute;
+    top: 15%;
+    bottom: 15%;
+    left: 14%;
+    width: 2px;
+    background: rgba(220, 80, 80, 0.4);
+  }
+
+  .spy-doodle {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px dashed #ff9f7a;
+    background: radial-gradient(circle at 30% 30%, #fff, #ffe0c0);
+    box-shadow: 0 3px 6px rgba(160,100,40,0.35);
+  }
+
+  .sd1 { top: 12%; right: 10%; }
+  .sd2 { bottom: 10%; left: 12%; }
+
+  .paper-glow {
+    position: fixed;
+    inset: -40px;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.55) 0, transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(255,255,255,0.45) 0, transparent 55%),
+      radial-gradient(circle at 30% 80%, rgba(255,255,255,0.35) 0, transparent 55%);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .curl-corner {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    bottom: -10px;
+    right: -10px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.0) 0, rgba(255,255,255,0.9) 60%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="paper-glow"></div>
+<div class="curl-corner"></div>
+
+<div class="bg-layer">
+  <div class="notebook-line n1"></div>
+  <div class="notebook-line n2"></div>
+  <div class="notebook-line n3"></div>
+  <div class="notebook-line n4"></div>
+  <div class="notebook-line n5"></div>
+  <div class="notebook-line n6"></div>
+  <div class="margin-line"></div>
+  <div class="spy-doodle sd1"></div>
+  <div class="spy-doodle sd2"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter and Lily: The Case of the Jelly Belly</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+  {
+    title: "Grounded and Jelly",
+    text: [
+      "Lily sat on her bedroom floor, surrounded by dust bunnies and a half‑sorted pile of books.",
+      "She was supposed to be cleaning. She was also very, very grounded.",
+      "Downstairs, she had argued about chores. Upstairs, she had a consequence.",
+      "She peeked out her window and saw Skeeter and Luna in the yard.",
+      "They were laughing at something shiny and chaotic.",
+      "Lily felt a tiny twist in her stomach.",
+      "“Jelly belly,” she whispered. “I don’t like jelly belly.”",
+      "She watched Skeeter smile at Luna and sighed.",
+      "“Suspicious,” she added."
+    ]
+  },
+  {
+    title: "Top‑Secret Notebook",
+    text: [
+      "Lily reached under her bed and pulled out a small notebook.",
+      "On the cover, in neat letters, it said:",
+      "“LILY’S TOP‑SECRET SPY NOTES (Do Not Read, Luna).”",
+      "She flipped it open to a fresh page.",
+      "She wrote:",
+      "“Observation #1: Skeeter and Luna laughing again.”",
+      "“Observation #2: Glitter involved.”",
+      "“Observation #3: Jelly belly feeling increasing.”",
+      "She underlined the last line twice.",
+      "“This is a case,” she decided. “A spy case.”"
+    ]
+  },
+  {
+    title: "Lady Bug Notices",
+    text: [
+      "Lily tiptoed out of her room, notebook tucked under her arm.",
+      "She crept down the stairs, trying to be quiet.",
+      "Lady Bug sat on the couch, legs crossed, reading a small book.",
+      "She looked up as Lily passed.",
+      "“Spy‑ing?” Lady Bug asked, her voice soft and calm.",
+      "Lily froze. “Maybe,” she said.",
+      "Lady Bug closed her book gently.",
+      "“Feel‑ing left out?” she asked.",
+      "Lily nodded, just a little.",
+      "Lady Bug smiled. “Go on,” she said. “But be kind.”"
+    ]
+  },
+  {
+    title: "Into the Yard",
+    text: [
+      "Lily slipped out the back door.",
+      "The yard was bright and warm.",
+      "Skeeter and Luna were near the fence, surrounded by glittery sticker sheets.",
+      "Luna held one up. “LOOK, SKEETER,” she shouted. “IT’S A GLITTER EXPLOSION.”",
+      "Skeeter laughed. “You’re going to get that stuck to your face,” he said.",
+      "Lily ducked behind a tree.",
+      "She opened her notebook and wrote:",
+      "“Observation #4: Skeeter warning Luna about stickers.”",
+      "“Suspicious level: medium.”"
+    ]
+  },
+  {
+    title: "Behind the Bush",
+    text: [
+      "Lily moved to a bush shaped almost like a giant star.",
+      "She crouched behind it, peeking through the leaves.",
+      "Luna pressed a sticker to her own forehead.",
+      "It stuck instantly.",
+      "“I HAVE MADE A MISTAKE,” Luna announced.",
+      "Skeeter stepped closer, laughing.",
+      "“Hold still,” he said. “I’ll peel it off.”",
+      "Lily’s jelly belly twisted again.",
+      "She wrote:",
+      "“Observation #5: Skeeter helping Luna. Very close.”"
+    ]
+  },
+  {
+    title: "Misread Clue",
+    text: [
+      "Skeeter carefully peeled the sticker off Luna’s forehead.",
+      "It came away with a soft, glittery squeak.",
+      "Luna giggled. “YOU ARE MY PEELING HERO,” she said.",
+      "Skeeter shook his head. “You’re just a sticker magnet,” he replied.",
+      "From behind the bush, Lily frowned.",
+      "She wrote:",
+      "“Observation #6: Luna calls Skeeter ‘hero.’”",
+      "“Suspicious level: high.”",
+      "Her jelly belly felt extra wobbly.",
+      "She hugged her notebook to her chest."
+    ]
+  },
+  {
+    title: "The Juice Box",
+    text: [
+      "Luna flopped onto the grass.",
+      "“I AM EXHAUSTED FROM BEING CHAOS,” she declared.",
+      "Skeeter opened the cooler and pulled out two juice boxes.",
+      "He handed one to Luna.",
+      "Lily gasped quietly.",
+      "She scribbled:",
+      "“Observation #7: Sharing drinks.”",
+      "“Suspicious level: extremely high.”",
+      "She tapped her pencil against her notebook.",
+      "“I really don’t like jelly belly,” she whispered."
+    ]
+  },
+  {
+    title: "Lady Bug Again",
+    text: [
+      "Lily felt a presence beside her.",
+      "Lady Bug had walked quietly across the yard.",
+      "She stood next to the bush, hands folded.",
+      "“Still spy‑ing?” she asked.",
+      "Lily jumped. “I’m just… watching,” she said.",
+      "Lady Bug tilted her head. “Watch your heart too,” she said.",
+      "Lily blinked. “My heart?”",
+      "Lady Bug nodded. “It’s not a crime to miss some‑one,” she said.",
+      "Lily looked down at her notebook.",
+      "Her jelly belly felt a little softer."
+    ]
+  },
+  {
+    title: "The Real Reason",
+    text: [
+      "Lady Bug sat on the grass beside Lily.",
+      "“Why are you spy‑ing?” she asked.",
+      "Lily hugged her notebook.",
+      "“Because they’re having fun without me,” she said.",
+      "Her voice was small.",
+      "“Because I’m grounded. Because I wanted to be there too.”",
+      "Lady Bug nodded slowly.",
+      "“That’s not suspicious,” she said. “That’s feel‑ing left out.”",
+      "Lily stared at her notes.",
+      "“Oh,” she said."
+    ]
+  },
+  {
+    title: "Decision Time",
+    text: [
+      "Lily flipped to a new page.",
+      "She wrote:",
+      "“New clue: I miss Skeeter.”",
+      "“New clue: I miss Luna too.”",
+      "She looked at Lady Bug.",
+      "“What do I do?” she asked.",
+      "Lady Bug smiled.",
+      "“Talk,” she said. “Not spy. Talk.”",
+      "Lily took a deep breath.",
+      "Her jelly belly wobbled, but it didn’t feel quite as bad."
+    ]
+  },
+  {
+    title: "Out of Hiding",
+    text: [
+      "Lily stepped out from behind the bush.",
+      "Skeeter and Luna turned around.",
+      "“LILY!” Luna shouted. “YOU ESCAPED YOUR ROOM!”",
+      "Skeeter grinned. “You’re not grounded anymore?”",
+      "Lily shrugged. “I… might still be a little grounded,” she said.",
+      "Luna gasped. “YOU ARE A REBEL,” she declared.",
+      "Skeeter laughed.",
+      "“What are you doing out here?” he asked.",
+      "Lily looked at her notebook.",
+      "“I was… spy‑ing,” she admitted."
+    ]
+  },
+  {
+    title: "The Confession",
+    text: [
+      "Skeeter blinked. “Spy‑ing on us?”",
+      "Lily nodded, cheeks pink.",
+      "“I saw you laughing,” she said.",
+      "“And helping Luna. And sharing juice. And I got jelly belly.”",
+      "Luna tilted her head. “Jelly belly?”",
+      "Lily put a hand on her stomach.",
+      "“It feels twisty,” she said. “Like I’m left out.”",
+      "Skeeter’s smile softened.",
+      "“We weren’t trying to leave you out,” he said.",
+      "“You were just… grounded.”"
+    ]
+  },
+  {
+    title: "Skeeter’s Side",
+    text: [
+      "Skeeter sat down on the grass.",
+      "He patted the spot next to him.",
+      "Lily sat too, notebook in her lap.",
+      "“I missed you,” Skeeter said.",
+      "“Luna is fun, but you’re… you.”",
+      "Lily blinked. “Me?”",
+      "“You notice things,” Skeeter said.",
+      "“You keep us from turning the whole yard into glitter soup.”",
+      "Luna raised a hand. “I WOULD LIKE TO TRY GLITTER SOUP,” she said.",
+      "Skeeter laughed. “Exactly,” he said."
+    ]
+  },
+  {
+    title: "Luna’s Take",
+    text: [
+      "Luna flopped down beside them.",
+      "“I LIKE BOTH OF YOU,” she announced.",
+      "“Skeeter is my peeling assistant. Lily is my brain assistant.”",
+      "She pointed at Lily’s notebook.",
+      "“You write things,” she said. “You see things.”",
+      "Lily looked at her notes.",
+      "Most of them said “suspicious.”",
+      "She crossed out one word and wrote “feel‑ing left out” instead.",
+      "Her jelly belly eased.",
+      "“I like you too,” she told Luna."
+    ]
+  },
+  {
+    title: "Holding Hands",
+    text: [
+      "The sun felt warm on their faces.",
+      "Lily looked at Skeeter.",
+      "“I’m sorry I spied,” she said.",
+      "“I should have just said I missed you.”",
+      "Skeeter shook his head.",
+      "“It’s okay,” he said. “You can tell me next time.”",
+      "He reached out and took Lily’s hand.",
+      "Just a gentle, friendly squeeze.",
+      "“I like being with you,” he said.",
+      "Lily smiled. “Me too,” she replied."
+    ]
+  },
+  {
+    title: "Group Hug Chaos",
+    text: [
+      "Luna gasped.",
+      "“EMOTIONAL MOMENT,” she shouted.",
+      "She threw her arms around both of them.",
+      "They toppled over into the grass.",
+      "Lady Bug watched from a few steps away, smiling softly.",
+      "“Close‑er now,” she said.",
+      "Luna squeezed them both.",
+      "“WE ARE UNSEPERATABLE,” she declared.",
+      "Skeeter laughed.",
+      "Lily laughed too, and her jelly belly finally felt calm."
+    ]
+  },
+  {
+    title: "Final Spy Notes",
+    text: [
+      "Later, back in her room, Lily opened her notebook again.",
+      "She turned to a fresh page.",
+      "She wrote:",
+      "“Final report: No suspicious activity.”",
+      "“Just friends.”",
+      "“Really good friends.”",
+      "She drew three little stick figures holding hands.",
+      "Underneath, she wrote:",
+      "“Case closed.”",
+      "Then she added one more line:",
+      "“I don’t get jelly belly when I talk.”"
+    ]
+  },
+  {
+    title: "Unseperatable",
+    text: [
+      "The next day, Lily wasn’t grounded anymore.",
+      "She met Skeeter and Luna in the yard.",
+      "They started a new adventure without even thinking about who was there first.",
+      "They just… were together.",
+      "Skeeter looked at Lily and smiled.",
+      "Lily smiled back.",
+      "Luna bounced between them, already planning chaos.",
+      "Lady Bug watched from the porch, calm and content.",
+      "“Un‑seperat‑able,” she said quietly.",
+      "And they were."
+    ]
+  }
+];
+
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 150);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
