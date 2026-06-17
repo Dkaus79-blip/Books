@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter and the Root-Beer Wild West Train</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #fffdf5 0, #ffe9c7 40%, #ffd39a 70%, #f7b879 100%);
+    color: #24140f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 252, 245, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(170, 110, 40, 0.55);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.95);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b3b1b;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7a5b2a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    color: #5b3b1b;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #24140f;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffecc7);
+    color: #4b2b10;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(160,100,40,0.35);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Small Wild West visuals */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tiny-star {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, #ffe58a 0, #f7b54a 60%, transparent 100%);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    opacity: 0.7;
+  }
+
+  .ts1 { top: 12%; left: 8%; }
+  .ts2 { top: 18%; right: 10%; }
+  .ts3 { bottom: 16%; left: 14%; }
+  .ts4 { bottom: 10%; right: 18%; }
+
+  .tiny-hat {
+    position: absolute;
+    width: 26px;
+    height: 14px;
+    border-radius: 50% 50% 40% 40%;
+    background: #8b4a24;
+    box-shadow: 0 2px 4px rgba(80,40,20,0.45);
+  }
+
+  .tiny-hat::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    bottom: -4px;
+    height: 6px;
+    border-radius: 999px;
+    background: #6b3618;
+  }
+
+  .th1 { top: 8%; left: 40%; }
+  .th2 { bottom: 8%; right: 32%; }
+
+  .tiny-bubble {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.8);
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0, rgba(210,140,80,0.4) 60%, transparent 100%);
+    opacity: 0.6;
+  }
+
+  .tb1 { top: 30%; left: 18%; }
+  .tb2 { top: 36%; right: 22%; }
+  .tb3 { bottom: 30%; left: 26%; }
+  .tb4 { bottom: 34%; right: 16%; }
+</style>
+</head>
+
+<body>
+
+<div class="bg-layer">
+  <div class="tiny-star ts1"></div>
+  <div class="tiny-star ts2"></div>
+  <div class="tiny-star ts3"></div>
+  <div class="tiny-star ts4"></div>
+  <div class="tiny-hat th1"></div>
+  <div class="tiny-hat th2"></div>
+  <div class="tiny-bubble tb1"></div>
+  <div class="tiny-bubble tb2"></div>
+  <div class="tiny-bubble tb3"></div>
+  <div class="tiny-bubble tb4"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter and the Root-Beer Wild West Train</div>
+    <div class="indicator" id="indicator">Page 1 of 1</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+<script>
+const pages = [
+
+{
+  title: "A Whistle in the Bedroom",
+  text: [
+    "Skeeter sat on his bedroom floor sorting stickers.",
+    "Lily wrote in her notebook on the bed.",
+    "Luna bounced like popcorn.",
+    "Lady Bug stood calmly by the bookshelf.",
+    "Then a tiny train whistle sounded from the magic book.",
+    "The cover glowed root‑beer brown.",
+    "Luna gasped. “THE BOOK IS CALLING US.”",
+    "WHOOSH—",
+    "They were pulled inside.",
+    "The adventure began."
+  ]
+},
+
+{
+  title: "The Tumbleweed Express",
+  text: [
+    "They landed on a dusty platform.",
+    "A giant steam train puffed root‑beer clouds.",
+    "A sign read: “WELCOME TO THE TUMBLEWEED EXPRESS.”",
+    "Luna inhaled deeply.",
+    "“IT SMELLS LIKE SODA AND ADVENTURE.”",
+    "Skeeter grinned.",
+    "Lady Bug nodded. “Wild West.”",
+    "The whistle tooted again.",
+    "“ALL ABOARD!” someone shouted.",
+    "They climbed on."
+  ]
+},
+
+{
+  title: "Root-Beer Car Discovery",
+  text: [
+    "The first car was full of barrels.",
+    "Labels read: “ROOT BEER,” “EXTRA FIZZY ROOT BEER,” and “DO NOT TOUCH THIS ROOT BEER.”",
+    "Luna marched to the last one.",
+    "“THIS ONE SPEAKS TO ME.”",
+    "Skeeter blocked her.",
+    "“Maybe start with normal root beer.”",
+    "Luna squinted. “YOU FEAR JOY.”",
+    "Lily giggled.",
+    "Lady Bug sighed.",
+    "Chaos was coming."
+  ]
+},
+
+{
+  title: "Jesse James and Hats",
+  text: [
+    "A man rushed by carrying three cowboy hats.",
+    "“Hat emergency!” he yelled.",
+    "Luna pointed. “IS THAT JESSE JAMES?”",
+    "Lady Bug nodded. “Hat collector version.”",
+    "Jesse stopped. “Seen a runaway hat?”",
+    "Skeeter shook his head.",
+    "“This train blows them right off my head,” Jesse muttered.",
+    "He tipped a hat.",
+    "Luna whispered, “I LIKE HIM.”",
+    "He sprinted away."
+  ]
+},
+
+{
+  title: "Wyatt Earp, Safety Officer",
+  text: [
+    "A tall man with a shiny badge blocked the doorway.",
+    "“Wyatt Earp. Train safety officer.”",
+    "Luna saluted. “I AM TRAIN CHAOS OFFICER.”",
+    "Wyatt blinked. “That’s… not a job.”",
+    "Lady Bug said, “We are just pass‑ing through.”",
+    "Wyatt nodded. “Then follow the rules.”",
+    "He pointed to a sign:",
+    "NO RUNNING. NO LEVER PULLING. NO DRINKING TOO MUCH ROOT BEER.",
+    "Luna frowned.",
+    "“THAT LAST ONE FEELS PERSONAL.”"
+  ]
+},
+
+{
+  title: "Luna Meets the Lever",
+  text: [
+    "They entered the engine car.",
+    "Levers and gauges everywhere.",
+    "A tumbleweed engineer wiped fog off his glasses.",
+    "Luna spotted a shiny lever labeled “SPEED.”",
+    "Wyatt’s voice echoed:",
+    "“NO LEVER PULLING.”",
+    "Luna grinned.",
+    "“I AM NOT PULLING. I AM ADMIRING.”",
+    "Skeeter groaned.",
+    "Trouble was brewing."
+  ]
+},
+{
+  title: "First Root-Beer Taste",
+  text: [
+    "Back in the root‑beer car, the engineer handed out tiny cups.",
+    "“Just a sip,” he warned.",
+    "Luna took a sip.",
+    "Her eyes widened.",
+    "“THIS IS BUBBLY MAGIC.”",
+    "Skeeter tasted his. “Strong.”",
+    "Lily smiled. “I like the tiny bubbles.”",
+    "Lady Bug set hers down. “Enough.”",
+    "Luna did not set hers down.",
+    "She stared at the barrels like treasure."
+  ]
+},
+
+{
+  title: "Too Much of a Good Thing",
+  text: [
+    "The engineer turned away.",
+    "Luna turned toward the barrels.",
+    "She found a tap on the “EXTRA FIZZY ROOT BEER” barrel.",
+    "“Just a little more,” she whispered.",
+    "She filled her cup.",
+    "Then again.",
+    "By the third refill, her eyes sparkled.",
+    "“I CAN HEAR COLORS.”",
+    "Skeeter stared. “That’s… concerning.”",
+    "Lily wrote: “Luna: too much root beer.”"
+  ]
+},
+
+{
+  title: "Train Starts to Wobble",
+  text: [
+    "The train hit a bump.",
+    "Root‑beer sloshed.",
+    "Tiny bubbles floated up.",
+    "Luna chased them.",
+    "The floor tilted.",
+    "Skeeter grabbed a rail.",
+    "“Is it supposed to wobble?”",
+    "The engineer frowned. “Not that much.”",
+    "Wyatt appeared. “Who touched some‑thing?”",
+    "Everyone looked at Luna."
+  ]
+},
+
+{
+  title: "Luna Takes the Controls",
+  text: [
+    "Luna marched to the engine car.",
+    "“I WILL FIX EVERYTHING.”",
+    "Skeeter followed, panicked.",
+    "The engineer wiped his glasses.",
+    "Luna grabbed the SPEED lever.",
+    "Wyatt shouted, “NO—”",
+    "Luna pulled.",
+    "The train groaned.",
+    "The desert blurred.",
+    "Skeeter yelled, “LUNA!”"
+  ]
+},
+
+{
+  title: "Speeding Up",
+  text: [
+    "The train zoomed faster.",
+    "Tumbleweeds zipped by like racing hamsters.",
+    "The engineer yelped.",
+    "Wyatt pointed at Luna. “That one did it.”",
+    "Luna laughed. “WE ARE GOING TO SPACE.”",
+    "Skeeter shook his head. “We are going to TROUBLE.”",
+    "The train wobbled harder.",
+    "The SPEED lever jammed.",
+    "The engineer panicked.",
+    "“We need the emergency release!”"
+  ]
+},
+{
+  title: "Roof Decision",
+  text: [
+    "Wyatt pointed to a hatch.",
+    "“Emergency release is on the roof.”",
+    "Skeeter blinked. “On top of the train?”",
+    "Wyatt nodded.",
+    "Luna raised her hand. “I VOLUNTEER.”",
+    "Wyatt said, “Absolutely not.”",
+    "Lily looked at Skeeter.",
+    "“You can do it,” she said softly.",
+    "Skeeter swallowed.",
+    "“Okay… I’ll go.”"
+  ]
+},
+
+{
+  title: "Skeeter Climbs",
+  text: [
+    "Skeeter grabbed the ladder.",
+    "Lily steadied it with both hands.",
+    "“Be careful,” she whispered.",
+    "Skeeter smiled. “I’ll be okay.”",
+    "He pushed open the hatch.",
+    "Wind whooshed in, warm and dusty.",
+    "He climbed onto the roof.",
+    "The world felt huge and shaky.",
+    "The train rattled beneath him.",
+    "He crawled forward slowly."
+  ]
+},
+
+{
+  title: "On Top of the Train",
+  text: [
+    "Skeeter crouched low.",
+    "The desert rushed past in a blur.",
+    "Tiny golden stars on the train flashed in the sun.",
+    "Luna shouted from below:",
+    "“YOU LOOK VERY COOL RIGHT NOW.”",
+    "Skeeter tried not to laugh.",
+    "He reached the front car.",
+    "The emergency box rattled in the wind.",
+    "He grabbed the handle.",
+    "“Please work,” he muttered."
+  ]
+},
+
+{
+  title: "Emergency Release",
+  text: [
+    "The box read:",
+    "“EMERGENCY SPEED RELEASE. DO NOT TOUCH UNLESS YOU REALLY MEAN IT.”",
+    "Skeeter thought of Luna’s chaos.",
+    "Lily’s worried eyes.",
+    "Lady Bug’s calm voice.",
+    "“I really mean it,” he said.",
+    "He pulled the lever down hard.",
+    "The train shuddered violently.",
+    "The speed dropped.",
+    "The wobble eased.",
+    "They were safe."
+  ]
+},
+
+{
+  title: "Slowing Down",
+  text: [
+    "Inside, the SPEED lever snapped back to normal.",
+    "The desert stopped blurring.",
+    "The engineer cheered.",
+    "“We’re safe!”",
+    "Wyatt nodded. “Good work.”",
+    "Luna pouted.",
+    "“I LIKED SPACE SPEED.”",
+    "Skeeter climbed back down the hatch.",
+    "Lily grabbed his hand to steady him.",
+    "“You did it,” she said."
+  ]
+},
+
+{
+  title: "Root-Beer Consequences",
+  text: [
+    "Wyatt turned to Luna.",
+    "“No more extra fizzy root beer.”",
+    "Luna sighed dramatically.",
+    "“I ACCEPT MY FATE.”",
+    "She eyed the normal barrel.",
+    "“CAN I HAVE REGULAR?”",
+    "Wyatt groaned.",
+    "“One cup.”",
+    "Lily wrote:",
+    "“Rule: Luna + extra fizzy root beer = disaster.”"
+  ]
+},
+
+{
+  title: "Golden Star Sticker",
+  text: [
+    "The engineer opened a small wooden box.",
+    "Inside was a tiny golden sheriff star sticker.",
+    "He peeled off a smaller one and handed it to Lily.",
+    "“For keep‑ing notes,” he said.",
+    "Lily smiled shyly.",
+    "Skeeter said, “You keep us together.”",
+    "Lily blushed.",
+    "Luna burped a root‑beer bubble.",
+    "Lady Bug nodded. “Wild West.”",
+    "The train slowed to a gentle stop."
+  ]
+},
+{
+  title: "Back to the Bedroom",
+  text: [
+    "The magic book glowed again.",
+    "A soft train whistle sounded.",
+    "WHOOSH—",
+    "They tumbled back into Skeeter’s room.",
+    "Luna landed upside‑down on a pillow.",
+    "She burped a tiny root‑beer bubble.",
+    "“I MISS THE TRAIN.”",
+    "Lily wrote:",
+    "“We are un‑seperat‑able. Even on a wob‑bly train.”",
+    "Skeeter smiled. “Best team ever.”"
+  ]
+}
+
+];  // END OF PAGES ARRAY
+
+
+
+/***************  PAGE ENGINE  ***************/
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 120);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
