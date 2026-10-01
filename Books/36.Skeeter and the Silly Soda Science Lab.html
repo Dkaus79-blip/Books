@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skeeter and the Silly Soda Science Lab</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top,
+      #fffdf8 0,
+      #ffe7c9 35%,
+      #ffc48f 65%,
+      #ff9f6b 85%,
+      #f9784a 100%);
+    color: #24140f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .book {
+    width: 90%;
+    max-width: 820px;
+    background: rgba(255, 252, 245, 0.97);
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(200, 120, 60, 0.55);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.95);
+    z-index: 10;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b3b1b;
+  }
+
+  .indicator {
+    font-size: 0.9rem;
+    color: #7a5b2a;
+  }
+
+  .page {
+    min-height: 260px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    color: #5b3b1b;
+  }
+
+  p {
+    line-height: 1.6;
+    margin: 0.4em 0;
+    font-size: 1rem;
+    color: #24140f;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff, #ffecc7);
+    color: #4b2b10;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(160,100,40,0.35);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Soda lab background graphics */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tiny-bubble {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.9);
+    background: radial-gradient(circle,
+      rgba(255,255,255,0.95) 0,
+      rgba(255,180,120,0.6) 55%,
+      transparent 100%);
+    opacity: 0.7;
+  }
+
+  .tb1 { top: 18%; left: 12%; }
+  .tb2 { top: 26%; right: 18%; }
+  .tb3 { bottom: 22%; left: 20%; }
+  .tb4 { bottom: 28%; right: 14%; }
+  .tb5 { top: 50%; left: 6%; }
+  .tb6 { top: 60%; right: 8%; }
+
+  .tiny-beaker {
+    position: absolute;
+    width: 26px;
+    height: 34px;
+    border-radius: 6px 6px 10px 10px;
+    background: linear-gradient(to top,
+      rgba(255,255,255,0.9),
+      rgba(255,210,150,0.9));
+    box-shadow: 0 2px 6px rgba(120,60,20,0.45);
+    overflow: hidden;
+  }
+
+  .tiny-beaker::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    height: 14px;
+    border-radius: 8px;
+    background: radial-gradient(circle,
+      rgba(255,140,80,0.95),
+      rgba(255,90,60,0.8));
+  }
+
+  .tiny-beaker::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 3px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.9);
+  }
+
+  .tbk1 { top: 10%; left: 40%; }
+  .tbk2 { bottom: 12%; right: 32%; }
+
+  .tiny-can {
+    position: absolute;
+    width: 20px;
+    height: 30px;
+    border-radius: 6px;
+    background: linear-gradient(135deg,
+      #ffcf8f,
+      #ff9f6b);
+    box-shadow: 0 2px 5px rgba(120,60,20,0.45);
+  }
+
+  .tiny-can::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 3px;
+    right: 3px;
+    height: 4px;
+    border-radius: 999px;
+    background: #f7f7f7;
+  }
+
+  .tiny-can::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 7px;
+    width: 6px;
+    height: 10px;
+    border-radius: 999px;
+    background: radial-gradient(circle,
+      rgba(255,255,255,0.95),
+      rgba(255,200,140,0.7));
+  }
+
+  .tcan1 { top: 16%; right: 8%; }
+  .tcan2 { bottom: 18%; left: 10%; }
+</style>
+</head>
+
+<body>
+
+<div class="bg-layer">
+  <div class="tiny-bubble tb1"></div>
+  <div class="tiny-bubble tb2"></div>
+  <div class="tiny-bubble tb3"></div>
+  <div class="tiny-bubble tb4"></div>
+  <div class="tiny-bubble tb5"></div>
+  <div class="tiny-bubble tb6"></div>
+
+  <div class="tiny-beaker tbk1"></div>
+  <div class="tiny-beaker tbk2"></div>
+
+  <div class="tiny-can tcan1"></div>
+  <div class="tiny-can tcan2"></div>
+</div>
+
+<div class="book">
+  <div class="header">
+    <div class="title">Skeeter and the Silly Soda Science Lab</div>
+    <div class="indicator" id="indicator">Page 1 of 13</div>
+  </div>
+
+  <div id="page" class="page visible"></div>
+
+  <div class="controls">
+    <button id="prev">◀ Back</button>
+    <div></div>
+    <button id="next">Next ▶</button>
+  </div>
+</div>
+
+<script>
+const pages = [
+
+{
+  title: "The Soda Whistle in the Bedroom",
+  text: [
+    "Skeeter sat on his bedroom floor lining up pencils like tiny rockets.",
+    "Lily lay on the bed, writing in her notebook.",
+    "Luna bounced on her toes, humming a song that had no pattern.",
+    "Lady Bug rested calmly by the bookshelf, eyes half‑closed.",
+    "Then a soft fizzing sound came from the magic book.",
+    "The cover glowed orange and pink, like soda in the sun.",
+    "A tiny whistle echoed, bubbly and bright.",
+    "Luna gasped. “THE BOOK IS FIZZING.”",
+    "WHOOSH—",
+    "They were pulled inside.",
+    "The adventure began."
+  ]
+},
+
+{
+  title: "Arrival in the Silly Soda Science Lab",
+  text: [
+    "They landed on a shiny floor that smelled like oranges and sugar.",
+    "Machines lined the walls, bubbling and blinking.",
+    "Beakers glowed with fizzy colors.",
+    "Soda cans floated in mid‑air like lazy balloons.",
+    "A sign read: “WELCOME TO THE SILLY SODA SCIENCE LAB.”",
+    "Luna spun around. “THIS IS MY DESTINY.”",
+    "Skeeter swallowed. “There are a lot of buttons.”",
+    "Lily wrote: “Lab: very bubbly. Luna: very dangerous.”",
+    "Lady Bug nodded. “Stay balanced.”",
+    "A tiny robot rolled up, whistling happily."
+  ]
+},
+
+{
+  title: "Meet Dr. Fizz and the Fizz-O-Matic 9000",
+  text: [
+    "The tiny robot beeped. “I am Dr. Fizz. Lab assistant.”",
+    "Behind him stood a huge machine labeled “FIZZ‑O‑MATIC 9000.”",
+    "Lights blinked. Tubes gurgled.",
+    "Dr. Fizz said, “This machine makes new soda flavors every ten seconds.”",
+    "Luna stepped closer. “CAN I HELP IT BE FASTER?”",
+    "Skeeter shook his head quickly. “No. Absolutely not.”",
+    "Lily wrote: “Fizz‑O‑Matic: probably dangerous.”",
+    "Lady Bug asked, “Does it have rules?”",
+    "Dr. Fizz pointed to a sign:",
+    "NO RANDOM BUTTON PRESSING.",
+    "NO DRINKING UNKNOWN FLAVORS.",
+    "NO TURNING EVERYTHING TO MAX FIZZ."
+  ]
+},
+
+{
+  title: "Luna and the Tempting Buttons",
+  text: [
+    "The Fizz‑O‑Matic had a panel full of glowing buttons.",
+    "One was labeled “NORMAL FIZZ.”",
+    "One was labeled “EXPERIMENTAL FIZZ.”",
+    "One was labeled “DO NOT TOUCH THIS BUTTON EVER.”",
+    "Luna stared at the last one.",
+    "“THIS BUTTON CALLS TO MY SOUL,” she whispered.",
+    "Skeeter stepped between her and the panel.",
+    "“We can start with normal fizz,” he said.",
+    "Lily wrote: “Button: DO NOT TOUCH. Luna: wants to touch.”",
+    "Lady Bug sighed softly. “This will be a long day.”"
+  ]
+},
+
+{
+  title: "Bubble-Beast Tank",
+  text: [
+    "Dr. Fizz led them to a giant glass tank.",
+    "Inside, bubbly creatures floated like round, glowing marshmallows.",
+    "“Bubble‑beasts,” Dr. Fizz said. “Friendly. Very clingy.”",
+    "One bubble‑beast drifted toward Skeeter.",
+    "It stuck to his shirt and giggled.",
+    "Luna laughed. “IT LIKES YOU.”",
+    "More bubble‑beasts floated over and gently attached to Skeeter.",
+    "He wobbled under the weight of giggles.",
+    "Lily wrote: “Bubble‑beasts: attracted to nervous kindness.”",
+    "Lady Bug patted one. “Soft.”"
+  ]
+},
+
+{
+  title: "First Taste of Lab Soda",
+  text: [
+    "Dr. Fizz handed out tiny cups of orange soda.",
+    "“This is safe,” he said. “Starter fizz.”",
+    "Luna took a sip.",
+    "Her eyes widened. “MY TONGUE IS HAVING A PARTY.”",
+    "Skeeter tasted his. “It’s strong.”",
+    "Lily smiled. “I like the tiny bubbles.”",
+    "Lady Bug set her cup down after one sip. “Enough.”",
+    "Luna did not set hers down.",
+    "She stared at the Fizz‑O‑Matic like it was treasure.",
+    "Dr. Fizz did not notice."
+  ]
+},
+
+{
+  title: "The Soda Volcano Erupts",
+  text: [
+    "In the center of the lab stood a tall cone labeled “SODA VOLCANO.”",
+    "Dr. Fizz said, “It only erupts during scheduled tests.”",
+    "Luna was already halfway up the side.",
+    "Skeeter shouted, “LUNA, NO.”",
+    "Lily wrote: “Volcano: not for climbing.”",
+    "Lady Bug watched calmly. “She will slip.”",
+    "Luna reached the top and waved.",
+    "Her foot slid.",
+    "She grabbed a lever labeled “ERUPT.”",
+    "The volcano roared.",
+    "Fizz exploded everywhere."
+  ]
+},
+
+{
+  title: "Flavor Mixer Maze",
+  text: [
+    "Dr. Fizz wiped soda off his glasses.",
+    "“Okay,” he said. “Maybe the maze will be calmer.”",
+    "They entered the Flavor Mixer Maze.",
+    "Each room glowed a different color.",
+    "In the strawberry room, everyone spoke very sweetly.",
+    "Luna said, “I APPRECIATE YOU ALL VERY MUCH.”",
+    "In the mint room, everyone whispered.",
+    "Skeeter whispered, “This is… actually nice.”",
+    "In the grape room, Luna bounced nonstop.",
+    "Lily wrote: “Rooms change mood. Luna: always extra.”"
+  ]
+},
+
+{
+  title: "Luna Finds the Mega-Fizz Reactor",
+  text: [
+    "At the center of the maze stood a huge machine.",
+    "A sign read: “MEGA‑FIZZ REACTOR. POWERS ENTIRE LAB.”",
+    "Dr. Fizz said, “We do not touch this without a plan.”",
+    "Luna stared at a big lever labeled “GIGGLE MODE.”",
+    "“What’s that?” she asked.",
+    "Dr. Fizz replied, “A setting we never use.”",
+    "Luna smiled slowly.",
+    "Skeeter felt his stomach drop.",
+    "Lily wrote: “Giggle Mode: absolutely not.”",
+    "Lady Bug said, “We should leave now.”"
+  ]
+},
+
+{
+  title: "Giggle Mode Activated",
+  text: [
+    "Luna grabbed the GIGGLE MODE lever.",
+    "Dr. Fizz shouted, “WAIT—”",
+    "Luna pulled.",
+    "The Mega‑Fizz Reactor hummed loudly.",
+    "Lights flashed pink and gold.",
+    "The floor vibrated.",
+    "Bubble‑beasts giggled louder.",
+    "Machines started laughing.",
+    "The Fizz‑O‑Matic spun its own buttons.",
+    "Skeeter yelled, “TURN IT OFF!”",
+    "Luna laughed uncontrollably. “I CAN’T. EVERYTHING IS FUNNY.”"
+  ]
+},
+
+{
+  title: "Skeeter Tries to Fix the Reactor",
+  text: [
+    "Dr. Fizz pointed to a control panel high on the side of the reactor.",
+    "“We need to reset it,” he said. “Manual override.”",
+    "Skeeter looked up at the panel.",
+    "The lab shook with fizzy laughter.",
+    "Lily touched his arm gently.",
+    "“You can do it,” she said softly.",
+    "Skeeter took a deep breath.",
+    "“Okay,” he said. “I’ll try.”",
+    "He climbed the ladder, bubble‑beasts cheering.",
+    "Lady Bug watched, calm and steady.",
+    "“One step at a time,” she said."
+  ]
+},
+
+{
+  title: "Resetting the Lab",
+  text: [
+    "At the top, Skeeter reached the override switch.",
+    "The label read: “RESET TO CALM FIZZ.”",
+    "He thought of Luna’s chaos.",
+    "Lily’s shy encouragement.",
+    "Lady Bug’s quiet strength.",
+    "“I really mean it,” he whispered.",
+    "He flipped the switch.",
+    "The Mega‑Fizz Reactor shuddered.",
+    "The lights softened.",
+    "The laughter faded to gentle giggles.",
+    "The lab settled.",
+    "They were safe."
+  ]
+},
+
+{
+  title: "Goodbye to the Soda Lab",
+  text: [
+    "Dr. Fizz adjusted his glasses.",
+    "“You saved the lab,” he said. “Mostly from itself.”",
+    "Luna burped a tiny soda bubble.",
+    "“I LIKED GIGGLE MODE,” she said.",
+    "Skeeter smiled nervously. “Maybe… in smaller doses.”",
+    "Lily wrote: “We fix things. Even when we cause them.”",
+    "Lady Bug nodded. “Balanced.”",
+    "The magic book on a nearby table began to glow.",
+    "A soft soda whistle sounded.",
+    "Dr. Fizz waved. “Come back any time. Preferably with less lever pulling.”",
+    "WHOOSH—",
+    "They tumbled out of the lab."
+  ]
+},
+
+{
+  title: "Back in Skeeter's Room",
+  text: [
+    "They landed in Skeeter’s bedroom.",
+    "Luna upside‑down on a pillow.",
+    "Skeeter on the floor, bubble‑beasts gone but memory fizzing.",
+    "Lily still holding her notebook.",
+    "Lady Bug exactly where she had been, calm and steady.",
+    "Luna burped one last tiny soda bubble.",
+    "“I MISS THE LAB,” she said.",
+    "Lily wrote:",
+    "“We are un‑seperat‑able. Even in giggle mode.”",
+    "Skeeter smiled. “Best team ever.”",
+    "Outside, the night was quiet.",
+    "Inside, everything still felt a little fizzy.",
+    "The book rested on the shelf, waiting for next time."
+  ]
+}
+
+];  // END OF PAGES ARRAY
+
+/***************  PAGE ENGINE  ***************/
+let pageIndex = 0;
+
+const pageEl = document.getElementById("page");
+const indicatorEl = document.getElementById("indicator");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+function render() {
+  const p = pages[pageIndex];
+
+  pageEl.classList.remove("visible");
+
+  setTimeout(() => {
+    pageEl.innerHTML =
+      `<h2>${p.title}</h2>` +
+      p.text.map(t => `<p>${t}</p>`).join("");
+
+    indicatorEl.textContent = `Page ${pageIndex + 1} of ${pages.length}`;
+    pageEl.scrollTop = 0;
+
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex === pages.length - 1;
+
+    requestAnimationFrame(() => {
+      pageEl.classList.add("visible");
+    });
+  }, 120);
+}
+
+prevBtn.addEventListener("click", () => {
+  if (pageIndex > 0) {
+    pageIndex--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (pageIndex < pages.length - 1) {
+    pageIndex++;
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
